@@ -1,0 +1,180 @@
+<template>
+  <el-container style="border: 1px solid #eee">
+    <el-row style="width: 100%;height: 100%;">
+      <el-col :span="4" :xs="3" :sm="3" :md="8" :lg="4" :xl="4" class="aside">
+        <!--<div class="asideButton">
+          <el-row>
+            <el-col>
+              <el-button type="primary" style="width: 220px" size="medium" plain round @click="handleNew">发布新地址</el-button>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col>
+              <el-input
+                      placeholder="搜索分类"
+                      prefix-icon="el-icon-search"
+                      v-model="filterText"
+                      size="medium">
+              </el-input>
+            </el-col>
+    </el-row>
+        </div>-->
+        <el-aside style="padding-top:10px;margin: 0px;" width="100%" >
+          <!--左侧树形-->
+          <db-table-tree
+          v-on:tableAdd="tableAdd"
+          @columnUpdate="columnUpdate"
+          @tableUpdate="tableUpdate"
+          @showTableWin="showTableWin"
+          ></db-table-tree>
+        </el-aside>
+      </el-col>
+      <el-col :span="20" :xs="17" :sm="17" :md="16" :lg="18" :xl="20">
+        <el-container>
+          <el-main>
+            <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab">
+              <el-tab-pane
+                      v-for="(item, index) in editableTabs"
+                      :key="item.name"
+                      :label="item.title"
+                      :name="item.name">
+                <!-- 组件会在 `currentTabComponent` 改变时改变 -->
+                <component v-bind:is="item.content"></component>
+
+              </el-tab-pane>
+            </el-tabs>
+          </el-main>
+        </el-container>
+      </el-col>
+    </el-row>
+  </el-container>
+
+</template>
+<script>
+  import ElCol from "element-ui/packages/col/src/col";
+  import DbTableColumnGrid from "./components/db-dictionary/DbTableColumnGrid";
+  import DbTableTree from "./components/db-dictionary/DbTableTree";
+
+  export default {
+    components: {DbTableTree, ElCol,DbTableColumnGrid },
+    data() {
+      const item = {
+        tagID: "ID001",
+        name: "地区",
+        description: "此处是改内容的详细描述...",
+        creatorID: "Admin",
+        regeneratorID: "Admin"
+      };
+      return {
+        DATA: null,
+        NODE: null,
+        editableTabsValue: '2',
+        editableTabs: [],
+        tabIndex: 2,
+        tableWindowVisible:false
+      }
+    },
+    methods: {
+      //添加表
+      tableAdd(obj){
+        let {node,data}=obj;
+        this.addTab(this.editableTabsValue,data);
+        console.log(data)
+      },
+      //修改表
+      tableUpdate(obj){
+        let {node,data}=obj;
+       this.showTableWin(data);
+      },
+      //修改字段
+      columnUpdate(obj){
+        let {node,data}=obj;
+        this.addTab(this.editableTabsValue,data);
+        console.log(data)
+      },
+
+      addTab(targetName,data) {
+        let {nodeId,type,name}=data;
+        let newTabName ="";
+        let existsTable=false;
+        let tabIndex=++this.tabIndex + '';
+        if (type=="table"){
+          newTabName=name;
+          tabIndex=nodeId;
+        }else{
+          newTabName="新建表"+tabIndex;
+        }
+        let tabs = this.editableTabs;
+        //判断面板id是否存在 不存在的时候增加 存在时 激活该面板
+        tabs.forEach((tab, index) => {
+          if (tab.name === tabIndex) {
+            existsTable=true;
+            return false;
+          }
+        });
+        if(!existsTable){
+          this.editableTabs.push({
+            title: newTabName,
+            name: tabIndex,
+            content: 'DbTableColumnGrid'
+          });
+        }
+
+
+        this.editableTabsValue =tabIndex;
+      },
+      removeTab(targetName) {
+        let tabs = this.editableTabs;
+        let activeName = this.editableTabsValue;
+        if (activeName === targetName) {
+          tabs.forEach((tab, index) => {
+            if (tab.name === targetName) {
+              let nextTab = tabs[index + 1] || tabs[index - 1];
+              if (nextTab) {
+                activeName = nextTab.name;
+              }
+            }
+          });
+        }
+
+        this.editableTabsValue = activeName;
+        this.editableTabs = tabs.filter(tab => tab.name !== targetName);
+      }
+    }
+  };
+</script>
+<style lang="less" scoped>
+  .popover-new {
+    // position: absolute!important;
+    // right: 0;
+    // bottom: 0;
+  }
+  /*顶部按钮*/
+  .slot-tree .slot-t-top{
+    margin-bottom: 15px;
+  }
+  .slot-tree .slot-t-node span{
+    display: inline-block;
+  }
+  /*节点*/
+  .slot-tree .slot-t-node--label{
+    font-weight: 600;
+  }
+  /*输入框*/
+  .slot-tree .slot-t-input .el-input__inner{
+    // height: 26px;
+    // line-height: 26px;
+  }
+  /*按钮列表*/
+  .slot-tree .slot-t-node .slot-t-icons{
+    display: none;
+    margin-left: 10px;
+  }
+  .slot-tree .slot-t-icons .el-button+.el-button{
+    margin-left: 6px;
+  }
+  .slot-tree .el-tree-node__content:hover .slot-t-icons{
+    display: inline-block;
+  }
+</style>
+
