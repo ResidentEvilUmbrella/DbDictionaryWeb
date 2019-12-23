@@ -23,10 +23,10 @@
                             ref="xTable"
                             class="my_table_status"
                             :data="tableData"
-                            :edit-config="{trigger: 'click', mode: 'cell', showStatus: true, icon: 'fa fa-edit'}">
+                            :edit-config="{trigger: 'click', mode: 'cell', showStatus: true,showIcon:false}">
                         <vxe-table-column type="checkbox" width="60"></vxe-table-column>
-                        <vxe-table-column type="seq" width="60"></vxe-table-column>
-                        <vxe-table-column field="columnName" title="字段名称" :edit-render="{name: 'input'}"></vxe-table-column>
+                        <vxe-table-column type="seq" width="60" ></vxe-table-column>
+                        <vxe-table-column field="columnName" title="字段名称" :edit-render="{name: 'input',icon:'fa fa-edit',showIcon:true}"></vxe-table-column>
                         <vxe-table-column field="columnShowName" title="字段中文名称" :edit-render="{name: 'input'}"></vxe-table-column>
                         <vxe-table-column field="dataType" title="数据类型" :edit-render="{name: 'select', options: dataTypeList}"></vxe-table-column>
                         <vxe-table-column field="columnLength" title="字段长度" :edit-render="{name: 'input'}"></vxe-table-column>
@@ -49,6 +49,7 @@
                                 <!--<input type="date" v-model="row.date3" class="custom-input">-->
                             </template>
                             <template v-slot="{ row }">
+                                <!--<i class="fa fa-key"  style="margin-right: 10px;color: #FFDB23"/>-->
                                 <el-switch v-model="row.primaryKey"  active-value="1"
                                            inactive-value="0"></el-switch>
                              </template>
