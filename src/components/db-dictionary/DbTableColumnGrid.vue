@@ -43,13 +43,16 @@
                             </template>
                         </vxe-table-column>
                         <vxe-table-column field="primaryKey"  align="center" title="主键" :edit-render="{name: 'input'}">
+                            <template v-slot:header="{column,columnIndex,$columnIndex,fixed,isHidden}">
+                                <i class="fa fa-key"  style="margin-right:0px;color: #FFDB23"/>
+                                主键
+                            </template>
                             <template v-slot:edit="{ row }">
                                 <el-switch v-model="row.primaryKey"  active-value="1"
                                            inactive-value="0"></el-switch>
                                 <!--<input type="date" v-model="row.date3" class="custom-input">-->
                             </template>
                             <template v-slot="{ row }">
-                                <!--<i class="fa fa-key"  style="margin-right: 10px;color: #FFDB23"/>-->
                                 <el-switch v-model="row.primaryKey"  active-value="1"
                                            inactive-value="0"></el-switch>
                              </template>

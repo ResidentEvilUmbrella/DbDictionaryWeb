@@ -23,11 +23,20 @@
                     active-text-color="#fff"
                     @select="handleRightSelect"
                     text-color="#fff">
+                <el-menu-item index="6" v-show="menuItemVisible['db']" class="menuItem">
+                    <span slot="title">添加模块</span>
+                </el-menu-item>
                 <el-menu-item index="1" v-show="menuItemVisible['module']" class="menuItem">
                     <span slot="title">添加表</span>
                 </el-menu-item>
                 <el-menu-item index="2" v-show="menuItemVisible['module']" class="menuItem">
                     <span slot="title">刷新</span>
+                </el-menu-item>
+                <el-menu-item index="7" v-show="menuItemVisible['module']" class="menuItem">
+                    <span slot="title">修改模块</span>
+                </el-menu-item>
+                <el-menu-item index="8" v-show="menuItemVisible['module']" class="menuItem">
+                    <span slot="title">删除模块</span>
                 </el-menu-item>
                 <el-menu-item index="3" v-show="menuItemVisible['table']" class="menuItem">
                     <span slot="title">修改字段</span>
@@ -42,15 +51,18 @@
         </div>
         <!--修改表信息窗口-->
         <db-table-window  ref="dbTableWin" @okEvent="tableWinOkEvent"></db-table-window>
+
+        <module-window ref="moduleWindow"></module-window>
     </div>
 </template>
 
 <script>
+    import ModuleWindow from "./ModuleWindow";
     import DbTableWindow from "./DbTableWindow";
 
     export default {
         name: "DbTableTree",
-        components:{DbTableWindow},
+        components:{ModuleWindow, DbTableWindow},
         data() {
             return {
                 treeData: [{
@@ -206,6 +218,7 @@
                 menuItemVisible:{
                     "module":false,
                     "table":false,
+                    "db":false
                 }
             }
         },
@@ -234,18 +247,33 @@
                     //删除表
                     this.tableDelete(this.clickNode, this.clickNodeData);
                     this.menuVisible = false;
+                }else if(key == 6){
+                    //console.log('6')
+                    //添加模块
+                    this.showModuleWin(this.clickNodeData);
+                    this.menuVisible = false;
+                }else if(key == 7){
+                    console.log('7')
+                    //修改模块
+                    this.tableDelete(this.clickNode, this.clickNodeData);
+                    this.menuVisible = false;
+                }else if(key == 8){
+                    console.log('8')
+                    //删除模块
+                    this.tableDelete(this.clickNode, this.clickNodeData);
+                    this.menuVisible = false;
                 }
             },
             rightClick(event, object, value, element) {
                 console.log(object)
                 this.clickNodeData=object;
                 this.clickNode=element;
-                if(object["type"]!=="db"){
+               /* if(object["type"]!=="db"){
 
                 }else{
                     this.menuVisible =false;
                     return;
-                }
+                }*/
 
                 if (this.objectID !== object.id) {
                     this.objectID = object.id;
@@ -298,6 +326,9 @@
             showTableWin(data){
                 this.$refs.dbTableWin.showWin(data);
             },
+            showModuleWin(data){
+                this.$refs.moduleWindow.showWin(data);
+            },
             tableWinOkEvent(data){
                 console.log(data);
             }
@@ -306,10 +337,8 @@
             clickNodeData(newValue, oldValue){
                 console.log("new"+newValue)
                 if(newValue){
-                    this.menuItemVisible={ "module":false, "table":false}
-                    if(newValue.type!="db"){
-                        this.menuItemVisible[newValue.type]=true;
-                    }
+                    this.menuItemVisible={ "module":false, "table":false,"db":false}
+                    this.menuItemVisible[newValue.type]=true;
 
                 }
             }
