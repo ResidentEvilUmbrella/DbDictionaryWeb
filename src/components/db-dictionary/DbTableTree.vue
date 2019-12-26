@@ -2,12 +2,14 @@
     <div>
         <el-scrollbar style="height: 100%;width: 98%">
         <el-tree
-                :data="treeData"
                 :props="defaultProps"
-                node-key="id"
-                ref="SlotMenuList"
+                node-key="nodeId"
+                ref="dbTableTree"
                 @node-contextmenu='rightClick'
                 @node-click="nodeClick"
+                :load="loadNode"
+                lazy
+                highlight-current
                 style="padding-left: 2%;padding-right:0;margin-right:0;width:95%;">
                 <span class="slot-t-node" slot-scope="{ node, data }">
                  <i class="fa" :class="iconClsObj[data.type]" :style="{'color' : node.expanded||data.type=='table' ? iconStyleObj[data.type] :'#9c9c9c'}" />
@@ -52,152 +54,19 @@
         <!--修改表信息窗口-->
         <db-table-window  ref="dbTableWin" @okEvent="tableWinOkEvent"></db-table-window>
 
-        <module-window ref="moduleWindow"></module-window>
+        <module-window ref="moduleWindow" @okEvent="moduleWindowOkEvent"></module-window>
     </div>
 </template>
 
 <script>
     import ModuleWindow from "./ModuleWindow";
     import DbTableWindow from "./DbTableWindow";
-
+    import  {Message} from 'element-ui'
     export default {
         name: "DbTableTree",
         components:{ModuleWindow, DbTableWindow},
         data() {
             return {
-                treeData: [{
-                    label: '系统库(mySql)',
-                    nodeId:"db1",
-                    dataId:"dbData1",
-                    type:"db",
-                    children: [{
-                        label: '系统主框架',
-                        type:"module",
-                        nodeId:"db1module1",
-                        dataId:"moduleData1",
-                        children: [{
-                            label: '系统参数配置表',
-                            name:"sys_paramCfg",
-                            type:"table",
-                            nodeId:"sys_paramCfg",
-                            dataId:"sys_paramCfg"
-                        }, {
-                            label: '数据库字典表信息存储表',
-                            name:"sys_dbDictionary_table",
-                            type:"table",
-                            nodeId:"sys_dbDictionary_table",
-                            dataId:"sys_dbDictionary_table"
-                        }, {
-                            label: '数据库字典字段信息存储表',
-                            name:"sys_dbDictionary_column",
-                            type:"table",
-                            nodeId:"sys_dbDictionary_column",
-                            dataId:"sys_dbDictionary_column"
-                        }, {
-                            label: 'XXX表',
-                            name:"xxx",
-                            type:"table",
-                            nodeId:"xxx",
-                            dataId:"xxx"
-                        }]
-                    }, {
-                        label: '人事管理模块',
-                        type:"module",
-                        nodeId:"db1module2",
-                        dataId:"module2",
-                        children: [{
-                            label: '人员信息表',
-                            name:"sys_empInfo",
-                            type:"table",
-                            nodeId:"sys_empInfo",
-                            dataId:"sys_empInfo"
-                        }]
-                    }, {
-                        label: '组织架构模块',
-                        type:"module",
-                        nodeId:"db1module3",
-                        dataId:"module3",
-                        children: []
-                    }, {
-                        label: 'XXX模块',
-                        type:"module",
-                        nodeId:"db1XXX",
-                        dataId:"db1XXX",
-                        children: []
-                    }]
-                }, {
-                    label: '扩展库(mySql)',
-                    type:"db",
-                    nodeId:"db2",
-                    dataId:"db2",
-                    children: [{
-                        label: '系统主框架',
-                        type:"module",
-                        nodeId:"db2module1",
-                        dataId:"db2module1",
-                        children: []
-                    }, {
-                        label: '人事管理模块',
-                        type:"module",
-                        nodeId:"db2module2",
-                        dataId:"db2module2",
-                        children: []
-                    }, {
-                        label: '组织架构模块',
-                        type:"module",
-                        nodeId:"db2module3",
-                        dataId:"db2module3",
-                        children: []
-                    }, {
-                        label: 'XXX模块',
-                        nodeId:"db2xxx",
-                        dataId:"db2xxx",
-                        type:"module",
-                        children: []
-                    }, {
-                        label: 'XXX模块',
-                        type:"module",
-                        nodeId:"db2xxx1",
-                        dataId:"db2xxx1",
-                        children: []
-                    }]
-                }, {
-                    label: '扩展库(oracle)',
-                    type:"db",
-                    nodeId:"db3",
-                    dataId:"db3",
-                    children: [{
-                        label: '系统主框架',
-                        type:"module",
-                        nodeId:"db3module1",
-                        dataId:"db3module1",
-                        children: []
-                    }, {
-                        label: '人事管理模块',
-                        type:"module",
-                        nodeId:"db3module2",
-                        dataId:"db3module2",
-                        children: []
-                    }, {
-                        label: '组织架构模块',
-                        type:"module",
-                        nodeId:"db3module3",
-                        dataId:"db3module3",
-                        children: []
-                    }, {
-                        label: 'XXX模块',
-                        type:"module",
-                        nodeId:"db3module4",
-                        dataId:"db3module4",
-                        children: []
-                    }, {
-                        label: 'XXX模块',
-                        type:"module",
-                        nodeId:"db3module5",
-                        dataId:"db3module5",
-                        children: []
-                    }]
-                }],
                 defaultProps: {
                     children: 'children',
                     label: 'label'
@@ -227,7 +96,7 @@
                 console.log(key);
                 if (key == 1) {
                     //添加表
-                    this.tableAdd(this.clickNode, this.clickNodeData);
+                    this.tableAdd(this.clickNodeData);
                     this.menuVisible = false;
                 } else if (key == 2) {
                     //刷新子节点
@@ -235,32 +104,31 @@
                     this.menuVisible = false;
                 } else if (key == 3) {
                     //修改字段
-                    this.columnUpdate(this.clickNode, this.clickNodeData);
+                    this.columnUpdate(this.clickNodeData);
                     this.menuVisible = false;
                 } else if(key == 4){
                     console.log('4')
                     //修改表信息
-                    this.tableUpdate(this.clickNode, this.clickNodeData);
+                    this.tableUpdate( this.clickNodeData);
                     this.menuVisible = false;
                 }else if(key == 5){
                     console.log('5')
                     //删除表
-                    this.tableDelete(this.clickNode, this.clickNodeData);
+                    this.tableDelete(this.clickNodeData);
                     this.menuVisible = false;
                 }else if(key == 6){
-                    //console.log('6')
                     //添加模块
-                    this.showModuleWin(this.clickNodeData);
+                    this.showModuleWin(this.clickNodeData,"add");
                     this.menuVisible = false;
                 }else if(key == 7){
                     console.log('7')
                     //修改模块
-                    this.tableDelete(this.clickNode, this.clickNodeData);
+                    this.moduleUpdate(this.clickNodeData);
                     this.menuVisible = false;
                 }else if(key == 8){
                     console.log('8')
                     //删除模块
-                    this.tableDelete(this.clickNode, this.clickNodeData);
+                    this.moduleDelete(this.clickNodeData);
                     this.menuVisible = false;
                 }
             },
@@ -302,40 +170,101 @@
             nodeClick(){
                 this.menuVisible = false;
             },
-            tableAdd(node,data){
+            tableAdd(data){
                 //新增表
-                this.$emit('tableAdd',{data,node});
+                this.$emit('tableAdd',data);
             },
-            tableDelete(node,data){
+            tableDelete(data){
                 //删除表
-                this.$emit('tableDelete',{data,node});
+                this.$emit('tableDelete',data);
             },
-            tableUpdate(node,data){
+            tableUpdate(data){
                 //修改表
                 //弹出窗口
                 this.showTableWin(data);
             },
-            columnUpdate(node,data){
+            columnUpdate(data){
                 //修改字段
-                this.$emit('columnUpdate',{data,node});
-            },
-            refreshNode(data){
-                //刷新节点
-                //this.$emit('refreshNode',{data,node});
+                this.$emit('columnUpdate',data["obj"]);
             },
             showTableWin(data){
                 this.$refs.dbTableWin.showWin(data);
             },
-            showModuleWin(data){
-                this.$refs.moduleWindow.showWin(data);
+            showModuleWin(data,action){
+                this.$refs.moduleWindow.showWin(data,action);
             },
             tableWinOkEvent(data){
                 console.log(data);
+            },
+            moduleWindowOkEvent(data){
+                let {tmuid,}=data;
+                if(tmuid!=""){
+                   //修改操作模块
+                    this.postRequest("/dict/updModule",data).then(respData=>{
+                        this.refreshNode(data["dbConnId"],"db")
+                    })
+                }else{
+                    //增加的操作
+                    this.postRequest("/dict/addModule",data).then(respData=>{
+                        this.refreshNode(data["dbConnId"],"db")
+                    })
+                }
+            },
+            moduleUpdate(data){
+
+                let {type,obj:moduleData}=data;
+                if(type=="module"){
+                    this.showModuleWin(moduleData,"update");
+                }else{
+                    Message.error({message:"请选择需要修改模块！！！"});
+                }
+            },
+            moduleDelete(data){
+                let {nodeId,type}=data;
+                this.getNodeByPid(nodeId,type).then(data=>{
+                    if(data.length>0){
+                        Message.error({message:"该模块下存在表数据不能删除！！！"});
+                        return;
+                    }
+                });
+                this.$confirm('此操作将删除模块【'+data.obj.moduleName+'】, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.postRequest("/dict/delModule",data["obj"]).then(respData=>{
+                        this.refreshNode(data["obj"]["dbConnId"],"db")
+                    })
+                    /*this.$message({
+                        type: 'success',
+                        message: '删除成功!'
+                    });*/
+                }).catch(() => {
+
+                });
+            },
+            loadNode(node, resolve) {
+                let {data}=node;
+                if(!data){
+                    data={};
+                }
+                let {nodeId="root",type="root"}=data;
+                this.postRequest("/dict/getTree",{nodeId:nodeId,type:type}).then(data=>{
+                    resolve(data);
+                });
+            },
+            getNodeByPid(pid,type){
+                let paramData={nodeId:pid,type:type};
+               return  this.postRequest("/dict/getTree",paramData);
+            },
+            refreshNode(pid,type){
+                this.getNodeByPid(pid,type).then(data=>{
+                    this.$refs.dbTableTree.updateKeyChildren(pid,data);
+                });
             }
         },
         watch:{
             clickNodeData(newValue, oldValue){
-                console.log("new"+newValue)
                 if(newValue){
                     this.menuItemVisible={ "module":false, "table":false,"db":false}
                     this.menuItemVisible[newValue.type]=true;

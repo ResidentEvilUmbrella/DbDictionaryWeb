@@ -34,8 +34,8 @@
           <el-main>
             <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab">
               <el-tab-pane
-                      v-for="(item, index) in editableTabs"
-                      :key="item.name"
+                      v-for="(item) in editableTabs"
+                      :key="item.index"
                       :label="item.title"
                       :name="item.name">
                 <!-- 组件会在 `currentTabComponent` 改变时改变 -->
@@ -76,24 +76,22 @@
     },
     methods: {
       //添加表
-      tableAdd(obj){
-        let {node,data}=obj;
+      tableAdd(data){
         this.addTab(this.editableTabsValue,data);
         console.log(data)
       },
       //修改表
-      tableUpdate(obj){
-        let {node,data}=obj;
+      tableUpdate(data){
        this.showTableWin(data);
       },
       //修改字段
-      columnUpdate(obj){
-        let {node,data}=obj;
+      columnUpdate(data){
         this.addTab(this.editableTabsValue,data);
         console.log(data)
       },
 
       addTab(targetName,data) {
+          console.log(data)
         let {nodeId,type,name}=data;
         let newTabName ="";
         let existsTable=false;

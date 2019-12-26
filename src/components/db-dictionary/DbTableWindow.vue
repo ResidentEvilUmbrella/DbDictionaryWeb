@@ -20,7 +20,7 @@
             <el-form-item label="模块信息">
                 <el-select v-model="editData.moduleCode" placeholder="请选择">
                     <el-option
-                            v-for="item in options"
+                            v-for="item in moduleList"
                             :key="item.value"
                             :label="item.label"
                             :value="item.value">
@@ -45,6 +45,7 @@
 </template>
 
 <script>
+
     export default {
         name: "DbTableWindow",
         props:{
@@ -65,9 +66,9 @@
                     moduleCode:"",
                     dbConnTmuid:"",
                     remark:"",
-                    used:""
+                    used:true
                 },
-
+                moduleList:[]
             }
         },
         methods:{
@@ -82,6 +83,12 @@
                 console.log(this.editData);
                 this.closeWin();
             }
+        },
+        mounted() {
+           /* this.postRequest("","").then(respData=>{
+
+
+            })*/
         }
     }
 </script>

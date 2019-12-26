@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import ElementUI, {MessageBox } from 'element-ui';
+import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import 'font-awesome/css/font-awesome.css'
 import './common/css/style.css'
