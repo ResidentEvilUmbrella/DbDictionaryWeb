@@ -25,7 +25,6 @@
           v-on:tableAdd="tableAdd"
           @columnUpdate="columnUpdate"
           @tableUpdate="tableUpdate"
-          @showTableWin="showTableWin"
           ></db-table-tree>
         </el-aside>
       </el-col>
@@ -39,7 +38,7 @@
                       :label="item.title"
                       :name="item.name">
                 <!-- 组件会在 `currentTabComponent` 改变时改变 -->
-                <component v-bind:is="item.content"></component>
+                <component v-bind:is="item.content" :nodeData="item.nodeData"></component>
 
               </el-tab-pane>
             </el-tabs>
@@ -114,7 +113,8 @@
           this.editableTabs.push({
             title: newTabName,
             name: tabIndex,
-            content: 'DbTableColumnGrid'
+            content: 'DbTableColumnGrid',
+            nodeData:data
           });
         }
 

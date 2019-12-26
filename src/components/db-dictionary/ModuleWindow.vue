@@ -95,7 +95,7 @@
                     if (valid) {
                         this.$emit("okEvent",this.editData)
                         this.closeWin();
-                    } else {
+                        } else {
                         //console.log('error submit!!');
                         return false;
                     }

@@ -17,7 +17,7 @@
                             <el-button type="warning" size="mini"><i class="fa fa-table gridIconCls"
                                                                      aria-hidden="true"></i>生成数据表
                             </el-button>
-                            <el-button type="primary" size="mini" @click="saveData"><i
+                            <el-button type="primary" size="mini" @click="saveDataEvent"><i
                                     class="fa fa-floppy-o gridIconCls" aria-hidden="true"></i>保存
                             </el-button>
                         </template>
@@ -67,16 +67,21 @@
                         </template>
                     </vxe-table-column>
                     <vxe-table-column field="columnDecimalPlace" title="小数位数"
-                                      :edit-render="{name: 'input'}"></vxe-table-column>
+                                      :edit-render="{name: 'input'}">
+                        <template v-slot:edit="{ row }">
+                            <el-input v-model.number="row.columnDecimalPlace"></el-input>
+                        </template>
+                        <template v-slot="{ row }">
+                            {{row.columnDecimalPlace}}
+                        </template>
+                    </vxe-table-column>
                     <vxe-table-column field="notNull" align="center" title="不允许为NULL" :edit-render="{name: 'input'}">
                         <template v-slot:edit="{ row }">
-                            <el-switch v-model="row.notNull" active-value="1"
-                                       inactive-value="0"></el-switch>
+                            <el-switch v-model="row.notNull" ></el-switch>
                             <!--<input type="date" v-model="row.date3" class="custom-input">-->
                         </template>
                         <template v-slot="{ row }">
-                            <el-switch v-model="row.notNull" active-value="1"
-                                       inactive-value="0"></el-switch>
+                            <el-switch v-model="row.notNull" ></el-switch>
                         </template>
                     </vxe-table-column>
                     <vxe-table-column field="primaryKey" align="center" title="主键" :edit-render="{name: 'input'}">
@@ -85,13 +90,11 @@
                             主键
                         </template>
                         <template v-slot:edit="{ row }">
-                            <el-switch v-model="row.primaryKey" active-value="1"
-                                       inactive-value="0"></el-switch>
+                            <el-switch v-model="row.primaryKey" ></el-switch>
                             <!--<input type="date" v-model="row.date3" class="custom-input">-->
                         </template>
                         <template v-slot="{ row }">
-                            <el-switch v-model="row.primaryKey" active-value="1"
-                                       inactive-value="0"></el-switch>
+                            <el-switch v-model="row.primaryKey" ></el-switch>
                         </template>
                     </vxe-table-column>
                     <vxe-table-column field="remark" title="列说明" :edit-render="{name: 'input'}"></vxe-table-column>
@@ -99,7 +102,7 @@
             </el-col>
         </el-row>
         <!--修改表信息窗口-->
-        <db-table-window ref="dbTableWin"></db-table-window>
+        <db-table-window ref="dbTableWin" @okEvent="dbTableWindowOkEvent"></db-table-window>
     </div>
 </template>
 
@@ -109,6 +112,7 @@
     export default {
         name: "DbTableColumnGrid",
         components: {DbTableWindow},
+        props:["nodeData"],
         data() {
             return {
                 tableData: [],
@@ -121,13 +125,14 @@
                         {required: true, message: '请输入字段长度'},
                         {pattern:/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/,message:"中文字段名称不能包含空格和特殊字符"},
                         {validator:function(rule, value, callback, {rules,row,column,rowIndex,columnIndex}){
-                                            if(!value){
-                                                callback(new Error("请输入字段长度"))
+                                            if((value+"").length==0){
+                                               return callback(new Error("请输入字段长度"))
                                             }else{
                                                 if(value<=0||value>8000){
-                                                    callback(new Error("字段长度为1-8000之间"))
+                                                  return   callback(new Error("字段长度只能输入1-8000之间的整数"))
                                                 }
                                             }
+                                            return  callback();
 
                                     }
                         }
@@ -138,6 +143,25 @@
                     columnShowName: [
                         {required: true, message: '请输入中文字段名称'},
                         {pattern:/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/,message:"中文字段名称不能包含空格和特殊字符"}
+                    ],
+                    columnDecimalPlace: [
+                        {validator:function(rule, value, callback, {rules,row,column,rowIndex,columnIndex}){
+                                if(value<0||value>8){
+                                  return   callback(new Error("小数位数只能输入1-8之间的整数"))
+                                }
+                                return  callback();
+                            }
+                        }
+                    ],
+                    notNull: [
+                        {validator:function(rule, value, callback, {rules,row,column,rowIndex,columnIndex}){
+
+                            if(row.primaryKey&&!row.notNull){
+                                  return   callback(new Error("主键列字段不能为空"))
+                                }
+                                return  callback();
+                            }
+                        }
                     ]
 
                 },
@@ -147,24 +171,21 @@
                     columnShowName: "",
                     tableTmuid: "",
                     dataType: "",
-                    notNull: "",
-                    primaryKey: "",
+                    notNull:false,
+                    primaryKey:false,
                     remark: "",
-                    used: "",
-                    sort: ""
+                    used: true,
+                    sort: 0,
                 },
                 dataTypeList: [{label: '', value: ''},
                     {label: 'varchar', value: 'varchar'},
                     {label: 'int', value: 'int'},
                     {label: 'decimal', value: 'decimal'},
                     {label: 'float', value: 'float'},
-                    {label: 'double', value: 'double'}],
-                nodeData: {},
+                    {label: 'double', value: 'double'}]
             }
         },
         methods: {
-            validEvent() {
-            },
             async addColumn() {
                 //-1 添加到最后一行
                 let record = {
@@ -175,14 +196,35 @@
                 await this.$refs.xTable.setActiveCell(newRow, 'columnName')
             },
             deleteColumn() {
-                this.$refs.xTable.removeSelecteds()
+                let removeRecords = this.$refs.xTable.getCheckboxRecords();
+                if(removeRecords.length>0){
+                    this.$refs.xTable.removeSelecteds()
+                }else{
+                    this.$message.warning({message: '请选择需要删除的数据!!'});
+                }
+
             },
-            async saveData() {
+            async saveDataEvent() {
+                let insertRecords = this.$refs.xTable.getInsertRecords();
+                let removeRecords = this.$refs.xTable.getRemoveRecords();
+                let updateRecords = this.$refs.xTable.getUpdateRecords();
+                if(insertRecords.length>0||removeRecords.length>0||updateRecords>0){
+                    // no Empty
+                }else{
+                    this.$message.warning({message: '没有需要保存的数据'});
+                    return ;
+                }
                 try {
                     await this.$refs.xTable.validate()
-                    this.$XModal.message({status: 'success', message: '校验成功！'})
+                    let {type}=this.nodeData;
+                    if(type=="module"){
+                        //添加
+                        this.showTableWin(this.nodeData,"add");
+                    }else if(type=="table"){
+                        //修改
+                    }
                 } catch (errMap) {
-                    this.$XModal.message({status: 'error', message: '校验不通过！'})
+                    this.$XModal.message({status: 'error', message: '字段校验不通过！'})
                 }
                 /*if(nodeData.dataTmuid&&nodeData.type=="table"){
                     //修改操作
@@ -190,10 +232,56 @@
                     //增加操作,需要弹出窗口
                     this.showTableWin(this.nodeData);
                 }*/
-                console.log("执行我了！！！")
+
             },
-            showTableWin(data) {
-                this.$refs.dbTableWin.showWin(data);
+            //保存到数据库
+            saveDataToDb(tableData){
+                let saveTable=false;
+                let tableTmuid="";
+                if(tableData){
+                    let {tableTmuid:tableTmuid}=tableData;
+                    saveTable=true;
+                }
+                let insertRecords = this.$refs.xTable.getInsertRecords();
+                let removeRecords = this.$refs.xTable.getRemoveRecords();
+                let updateRecords = this.$refs.xTable.getUpdateRecords();
+                if(insertRecords.length>0){
+                    insertRecords.forEach((value, index, array)=>{
+                        //增加
+                        value["rowFlag"]=1;
+                        value["tableTmuid"]=tableTmuid;
+                    });
+                    this.postRequest("/dict/addCol",insertRecords).then(respData=>{
+                    })
+                }
+
+                if(updateRecords.length>0){
+                    updateRecords.forEach((value, index, array)=>{
+                        //修改
+                        value["rowFlag"]=0;
+                        value["tableTmuid"]=tableTmuid;
+                        //console.log(value);
+                    });
+                    this.postRequest("/dict/updCol",insertRecords).then(respData=>{
+                    })
+                }
+
+                if(removeRecords.length>0){
+                    removeRecords.forEach((value, index, array)=>{
+                        //删除
+                        value["rowFlag"]=-1;
+                        value["tableTmuid"]=tableTmuid;
+                    });
+                    this.postRequest("/dict/delCol",removeRecords).then(respData=>{
+                    })
+                }
+            },
+            showTableWin(data,action) {
+                this.$refs.dbTableWin.showWin(data,action);
+            },
+            dbTableWindowOkEvent(data){
+                //增加表操作
+                this.saveDataToDb(data);
             }
         }
     }
