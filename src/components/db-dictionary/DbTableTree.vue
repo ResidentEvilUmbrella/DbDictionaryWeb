@@ -100,7 +100,7 @@
                     this.menuVisible = false;
                 } else if (key == 2) {
                     //刷新子节点
-                    this.refreshNode(this.clickNodeData);
+                    this.refreshNode(this.clickNodeData["nodeId"],"module");
                     this.menuVisible = false;
                 } else if (key == 3) {
                     //修改字段
@@ -175,26 +175,47 @@
                 this.$emit('tableAdd',data);
             },
             tableDelete(data){
-                //删除表
-                this.$emit('tableDelete',data);
+
+                this.$confirm('此操作将删除表【'+data.obj.tableShowName+'】, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.postRequest("/dict/delTable",data["obj"]).then(respData=>{
+                        this.refreshNode(data["obj"]["dbConnId"],"db")
+                        //删除表事件
+                        this.$emit('tableDeleteEvent',data["obj"]);
+                    })
+                    /*this.$message({
+                        type: 'success',
+                        message: '删除成功!'
+                    });*/
+                }).catch(() => {
+
+                });
+
+
+
             },
             tableUpdate(data){
                 //修改表
                 //弹出窗口
-                this.showTableWin(data);
+                this.showTableWin(data,"update");
             },
             columnUpdate(data){
                 //修改字段
-                this.$emit('columnUpdate',data["obj"]);
+                this.$emit('columnUpdate',data);
             },
-            showTableWin(data){
-                this.$refs.dbTableWin.showWin(data);
+            showTableWin(data,action){
+                this.$refs.dbTableWin.showWin(data,action);
             },
             showModuleWin(data,action){
                 this.$refs.moduleWindow.showWin(data,action);
             },
             tableWinOkEvent(data){
-                console.log(data);
+                //console.log(data);
+                this.refreshNode(data["moduleId"],"module");
+                this.$emit("dbTableWindowOkEvent",data,data["tmuid"]);
             },
             moduleWindowOkEvent(data){
                 let {tmuid,}=data;
@@ -219,29 +240,34 @@
                     Message.error({message:"请选择需要修改模块！！！"});
                 }
             },
-            moduleDelete(data){
+          async  moduleDelete(data){
                 let {nodeId,type}=data;
-                this.getNodeByPid(nodeId,type).then(data=>{
+                await this.getNodeByPid(nodeId,type).then(data=>{
                     if(data.length>0){
                         Message.error({message:"该模块下存在表数据不能删除！！！"});
-                        return;
+                        return data.length;
                     }
-                });
-                this.$confirm('此操作将删除模块【'+data.obj.moduleName+'】, 是否继续?', '提示', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
-                    type: 'warning'
-                }).then(() => {
-                    this.postRequest("/dict/delModule",data["obj"]).then(respData=>{
-                        this.refreshNode(data["obj"]["dbConnId"],"db")
-                    })
-                    /*this.$message({
-                        type: 'success',
-                        message: '删除成功!'
-                    });*/
-                }).catch(() => {
+                }).then(dataLength=>{
+                    if(!dataLength||dataLength==0){
+                        this.$confirm('此操作将删除模块【'+data.obj.moduleName+'】, 是否继续?', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        }).then(() => {
+                            this.postRequest("/dict/delModule",data["obj"]).then(respData=>{
+                                this.refreshNode(data["obj"]["dbConnId"],"db")
+                            })
+                            /*this.$message({
+                                type: 'success',
+                                message: '删除成功!'
+                            });*/
+                        }).catch(() => {
 
-                });
+                        });
+                    }
+
+                })
+
             },
             loadNode(node, resolve) {
                 let {data}=node;

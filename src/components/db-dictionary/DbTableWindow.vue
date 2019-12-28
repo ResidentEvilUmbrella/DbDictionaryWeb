@@ -79,19 +79,22 @@
                     tableName:"",
                     tableShowName:"",
                     moduleCode:"",
+                    moduleId:"",
                     dbConnId:"",
                     remark:"",
                     used:true,
-                    tmuid:"",
-                    sort:""
+                    sort:"",
+                    tmuid:""
                 },
                 editDataTemplate:{
                     tableName:"",
                     tableShowName:"",
                     moduleCode:"",
-                    dbConnTmuid:"",
+                    moduleId:"",
+                    dbConnId:"",
                     remark:"",
                     used:true,
+                    sort:"",
                     tmuid:""
                 },
                 moduleList:[],
@@ -106,14 +109,15 @@
                     console.log(data)
                     //获取选择的节点的tmuid 作为连接数据库的tmuid
                     this.windowAttr.title="添加表"
-                    this.editData["dbConnId"]=data.obj["dbConnTmuid"];
+                    this.editData["dbConnId"]=data.obj["dbConnId"];
                     this.editData["moduleCode"]=data.obj["moduleCode"];
+                    this.editData["moduleId"]=data.obj["tmuid"];
                     this.editData["moduleName"]=data.obj["moduleName"];
                     //添加
                 } else if(action=="update"){
                     //修改
                     this.windowAttr.title="修改表"
-                    this.editData={...data};
+                    this.editData={...data["obj"]};
                 }
                 this.windowAttr.windowVisible=true;
             },
@@ -126,12 +130,12 @@
 
                         if (this.editData.tmuid != "") {
                             this.postRequest("/dict/updTable", this.editData).then(respData => {
-                                this.$emit("okEvent", respData["body"]);
+                                this.$emit("okEvent",this.editData);
                                 this.closeWin();
                             })
                         } else {
                             this.postRequest("/dict/addTable", this.editData).then(respData => {
-                                this.$emit("okEvent", respData["body"]);
+                                this.$emit("okEvent",respData["body"]);
                                 this.closeWin();
                             })
                         }

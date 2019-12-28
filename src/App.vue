@@ -25,6 +25,9 @@
           v-on:tableAdd="tableAdd"
           @columnUpdate="columnUpdate"
           @tableUpdate="tableUpdate"
+          @dbTableWindowOkEvent="dbTableWindowOkEvent"
+          @tableDeleteEvent="tableDelete"
+          ref="dbTableTree"
           ></db-table-tree>
         </el-aside>
       </el-col>
@@ -38,7 +41,7 @@
                       :label="item.title"
                       :name="item.name">
                 <!-- 组件会在 `currentTabComponent` 改变时改变 -->
-                <component v-bind:is="item.content" :nodeData="item.nodeData"></component>
+                <component v-bind:is="item.content" :nodeData="item.nodeData" :panelId="item.name" @dbTableWindowOkEvent="dbTableWindowOkEvent"></component>
 
               </el-tab-pane>
             </el-tabs>
@@ -67,9 +70,9 @@
       return {
         DATA: null,
         NODE: null,
-        editableTabsValue: '2',
+        editableTabsValue: '0',
         editableTabs: [],
-        tabIndex: 2,
+        tabIndex:0,
         tableWindowVisible:false
       }
     },
@@ -83,6 +86,9 @@
       tableUpdate(data){
        this.showTableWin(data);
       },
+      tableDelete(data){
+        this.removeTab(data["tmuid"]);
+      },
       //修改字段
       columnUpdate(data){
         this.addTab(this.editableTabsValue,data);
@@ -91,15 +97,16 @@
 
       addTab(targetName,data) {
           console.log(data)
-        let {nodeId,type,name}=data;
+        let {nodeId,type,label}=data;
         let newTabName ="";
         let existsTable=false;
-        let tabIndex=++this.tabIndex + '';
+        let tabIndex='';
         if (type=="table"){
-          newTabName=name;
+          newTabName=label;
           tabIndex=nodeId;
         }else{
           newTabName="新建表"+tabIndex;
+          tabIndex=++this.tabIndex + '';
         }
         let tabs = this.editableTabs;
         //判断面板id是否存在 不存在的时候增加 存在时 激活该面板
@@ -137,6 +144,21 @@
 
         this.editableTabsValue = activeName;
         this.editableTabs = tabs.filter(tab => tab.name !== targetName);
+      },
+      dbTableWindowOkEvent(data,panelId){
+        let tabs = this.editableTabs;
+        tabs.forEach((tab, index) => {
+          if (tab.name === panelId) {
+              tab.name=data["tmuid"];
+              tab.title=data["tableShowName"];
+            tab.nodeData={obj:data,type:"table",nodeId:data["tmuid"]};
+            this.editableTabsValue =data["tmuid"];
+          }
+        });
+        //刷新树形数据
+        if(data){
+          this.$refs.dbTableTree.refreshNode(data["moduleId"],"module");
+        }
       }
     }
   };

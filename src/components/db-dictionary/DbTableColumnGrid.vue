@@ -112,7 +112,7 @@
     export default {
         name: "DbTableColumnGrid",
         components: {DbTableWindow},
-        props:["nodeData"],
+        props:["nodeData","panelId"],
         data() {
             return {
                 tableData: [],
@@ -208,9 +208,7 @@
                 let insertRecords = this.$refs.xTable.getInsertRecords();
                 let removeRecords = this.$refs.xTable.getRemoveRecords();
                 let updateRecords = this.$refs.xTable.getUpdateRecords();
-                if(insertRecords.length>0||removeRecords.length>0||updateRecords>0){
-                    // no Empty
-                }else{
+                if(insertRecords.length==0&&removeRecords.length==0&&updateRecords==0){
                     this.$message.warning({message: '没有需要保存的数据'});
                     return ;
                 }
@@ -222,6 +220,7 @@
                         this.showTableWin(this.nodeData,"add");
                     }else if(type=="table"){
                         //修改
+                        this.saveDataToDb(this.nodeData["obj"]);
                     }
                 } catch (errMap) {
                     this.$XModal.message({status: 'error', message: '字段校验不通过！'})
@@ -236,43 +235,51 @@
             },
             //保存到数据库
             saveDataToDb(tableData){
-                let saveTable=false;
-                let tableTmuid="";
-                if(tableData){
-                    let {tableTmuid:tableTmuid}=tableData;
-                    saveTable=true;
-                }
+
+                let {tmuid:tableTmuid}=tableData;
                 let insertRecords = this.$refs.xTable.getInsertRecords();
                 let removeRecords = this.$refs.xTable.getRemoveRecords();
                 let updateRecords = this.$refs.xTable.getUpdateRecords();
+                let saveRecords=[];
                 if(insertRecords.length>0){
                     insertRecords.forEach((value, index, array)=>{
                         //增加
-                        value["rowFlag"]=1;
-                        value["tableTmuid"]=tableTmuid;
+                        value["flag"]=1;
+                        value["tableId"]=tableTmuid;
+                        saveRecords.push(value);
                     });
-                    this.postRequest("/dict/addCol",insertRecords).then(respData=>{
-                    })
                 }
 
                 if(updateRecords.length>0){
                     updateRecords.forEach((value, index, array)=>{
                         //修改
-                        value["rowFlag"]=0;
-                        value["tableTmuid"]=tableTmuid;
+                        value["flag"]=0;
+                        value["tableId"]=tableTmuid;
                         //console.log(value);
+                        saveRecords.push(value);
                     });
-                    this.postRequest("/dict/updCol",insertRecords).then(respData=>{
-                    })
+                    /*this.postRequest("/dict/updCol",insertRecords).then(respData=>{
+                    })*/
                 }
 
                 if(removeRecords.length>0){
                     removeRecords.forEach((value, index, array)=>{
                         //删除
-                        value["rowFlag"]=-1;
-                        value["tableTmuid"]=tableTmuid;
+                        value["flag"]=-1;
+                        value["tableId"]=tableTmuid;
+                        saveRecords.push(value);
                     });
-                    this.postRequest("/dict/delCol",removeRecords).then(respData=>{
+
+                }
+                this.postRequest("/dict/saveCol",saveRecords).then(respData=>{
+                    this.loadData();
+                })
+            },
+            loadData(){
+                let {type,nodeId}=this.nodeData;
+                if(type=="table"){
+                    this.postKeyValueRequest("/dict/getCol",{tableId:nodeId}).then(data=>{
+                        this.tableData=data;
                     })
                 }
             },
@@ -282,7 +289,10 @@
             dbTableWindowOkEvent(data){
                 //增加表操作
                 this.saveDataToDb(data);
+                this.$emit("dbTableWindowOkEvent",data,this.panelId);
             }
+        },mounted() {
+            this.loadData();
         }
     }
 </script>
