@@ -69,7 +69,10 @@
             return {
                 defaultProps: {
                     children: 'children',
-                    label: 'label'
+                    label: 'label',
+                    isLeaf(data, node){
+                        console.log(data,node)
+                    }
                 },
                 iconClsObj:{
                     "db":"fa-database",
@@ -93,7 +96,6 @@
         },
         methods: {
             handleRightSelect(key) {
-                console.log(key);
                 if (key == 1) {
                     //添加表
                     this.tableAdd(this.clickNodeData);
@@ -102,17 +104,16 @@
                     //刷新子节点
                     this.refreshNode(this.clickNodeData["nodeId"],"module");
                     this.menuVisible = false;
+                    Message.success({message:"刷新节点成功！！！"});
                 } else if (key == 3) {
                     //修改字段
                     this.columnUpdate(this.clickNodeData);
                     this.menuVisible = false;
                 } else if(key == 4){
-                    console.log('4')
                     //修改表信息
                     this.tableUpdate( this.clickNodeData);
                     this.menuVisible = false;
                 }else if(key == 5){
-                    console.log('5')
                     //删除表
                     this.tableDelete(this.clickNodeData);
                     this.menuVisible = false;
@@ -121,28 +122,18 @@
                     this.showModuleWin(this.clickNodeData,"add");
                     this.menuVisible = false;
                 }else if(key == 7){
-                    console.log('7')
                     //修改模块
                     this.moduleUpdate(this.clickNodeData);
                     this.menuVisible = false;
                 }else if(key == 8){
-                    console.log('8')
                     //删除模块
                     this.moduleDelete(this.clickNodeData);
                     this.menuVisible = false;
                 }
             },
             rightClick(event, object, value, element) {
-                console.log(object)
                 this.clickNodeData=object;
                 this.clickNode=element;
-               /* if(object["type"]!=="db"){
-
-                }else{
-                    this.menuVisible =false;
-                    return;
-                }*/
-
                 if (this.objectID !== object.id) {
                     this.objectID = object.id;
                     this.menuVisible = true;
