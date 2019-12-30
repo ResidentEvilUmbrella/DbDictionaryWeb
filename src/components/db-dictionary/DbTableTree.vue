@@ -31,9 +31,13 @@
                 <el-menu-item index="1" v-show="menuItemVisible['module']" class="menuItem">
                     <span slot="title">添加表</span>
                 </el-menu-item>
+                <el-menu-item index="9" v-show="menuItemVisible['module']" class="menuItem">
+                    <span slot="title">导入表</span>
+                </el-menu-item>
                 <el-menu-item index="2" v-show="menuItemVisible['module']" class="menuItem">
                     <span slot="title">刷新</span>
                 </el-menu-item>
+
                 <el-menu-item index="7" v-show="menuItemVisible['module']" class="menuItem">
                     <span slot="title">修改模块</span>
                 </el-menu-item>
@@ -55,16 +59,19 @@
         <db-table-window  ref="dbTableWin" @okEvent="tableWinOkEvent"></db-table-window>
 
         <module-window ref="moduleWindow" @okEvent="moduleWindowOkEvent"></module-window>
+
+        <sync-db-table-window ref="syncDbTableWindow" ></sync-db-table-window>
     </div>
 </template>
 
 <script>
     import ModuleWindow from "./ModuleWindow";
     import DbTableWindow from "./DbTableWindow";
+    import SyncDbTableWindow from "./SyncDbTableWindow";
     import  {Message} from 'element-ui'
     export default {
         name: "DbTableTree",
-        components:{ModuleWindow, DbTableWindow},
+        components:{ModuleWindow, DbTableWindow,SyncDbTableWindow},
         data() {
             return {
                 defaultProps: {
@@ -128,6 +135,10 @@
                 }else if(key == 8){
                     //删除模块
                     this.moduleDelete(this.clickNodeData);
+                    this.menuVisible = false;
+                }else if(key==9){
+                    //导入表
+                    this.showSyncDbTableWindow(this.clickNodeData);
                     this.menuVisible = false;
                 }
             },
@@ -278,6 +289,9 @@
                 this.getNodeByPid(pid,type).then(data=>{
                     this.$refs.dbTableTree.updateKeyChildren(pid,data);
                 });
+            },
+            showSyncDbTableWindow(data){
+                this.$refs.syncDbTableWindow.showWin(data);
             }
         },
         watch:{

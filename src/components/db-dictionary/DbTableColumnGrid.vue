@@ -11,11 +11,8 @@
                             <el-button type="danger" size="mini" @click="deleteColumn"><i
                                     class="fa fa-minus gridIconCls" aria-hidden="true"></i>删除字段
                             </el-button>
-                            <el-button type="warning" v-show="false" size="mini"><i class="fa fa-key gridIconCls"
-                                                                                    aria-hidden="true"></i>主键
-                            </el-button>
-                            <el-button type="warning" size="mini"><i class="fa fa-table gridIconCls"
-                                                                     aria-hidden="true"></i>生成数据表
+                            <el-button type="warning" size="mini" @click="generaterTable" v-show="nodeType=='table'"><i class="fa fa-table gridIconCls"
+                                                                     aria-hidden="true"></i>同步数据表
                             </el-button>
                             <el-button type="primary" size="mini" @click="saveDataEvent"><i
                                     class="fa fa-floppy-o gridIconCls" aria-hidden="true"></i>保存
@@ -116,6 +113,7 @@
         data() {
             return {
                 tableData: [],
+                nodeType:"",
                 validRules: {
                     columnName: [
                         {required: true, message: '请输入字段名称'},
@@ -290,9 +288,31 @@
                 //增加表操作
                 this.saveDataToDb(data);
                 this.$emit("dbTableWindowOkEvent",data,this.panelId);
+            },
+            generaterTable(){
+                //生成表
+                if(this.nodeData["type"]=="table"){
+                    this.$confirm('确定要在数据库中同步生成表【'+this.nodeData.obj.tableShowName+'】的结构吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        let data={tableVo:this.nodeData["obj"],colVoList:this.tableData};
+                        this.postRequest("/dict/syncDb",data).then(respData=>{
+                        })
+                        /*this.$message({
+                            type: 'success',
+                            message: '删除成功!'
+                        });*/
+                    }).catch(() => {
+
+                    });
+                }
+
             }
         },mounted() {
             this.loadData();
+            this.nodeType=this.nodeData.type;
         }
     }
 </script>
