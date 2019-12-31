@@ -298,19 +298,33 @@
             showSyncDbTableWindow(data){
                 this.$refs.syncDbTableWindow.showWin(data);
             },
-            syncDbTableWindowOkEvent(moduleNodeData){
-                this.refreshNode(moduleNodeData["nodeId"],moduleNodeData["type"])
+             syncDbTableWindowOkEvent(moduleNodeData){
+                let dbNode=this.$refs.dbTableTree.getNode(moduleNodeData.obj["dbConnId"]);
+                    if(dbNode){
+                        let {childNodes}=dbNode;
+                        childNodes.forEach((value, index, array)=>{
+                            this.refreshNode(value.data.nodeId,value.data.type)
+                        });
+                    }
+               /* try {
+
+                     this.refreshNode(moduleNodeData.obj["dbConnId"],"db");
+
+                    this.refreshNode(moduleNodeData.nodeId,moduleNodeData.type);
+                }catch (e) {
+                    //
+                }*/
+
             },
             setToolTip(node){
                 let {type}=node;
-                console.log(node)
-                let result="1234556";
+                let result="";
                 if(type=="db"){
                     result=`数据库名称:${node.obj.dbName}`;
                 }else if(type=="module"){
-                    result=`模块名称:${node.obj.moduleName}</br>模块备注:${node.obj.remark}`;
+                    result=`模块名称:${node.obj.moduleName}</br>模块备注:${!node.obj.remark?"":node.obj.remark}`;
                 }else if(type=="table"){
-                    result=`表名称:${node.obj.tableName}</br>表备注:${node.obj.remark}`;
+                    result=`表名:${node.obj.tableName}</br>备注:${!node.obj.remark?"":node.obj.remark}`;
                 }
                 return result;
             }

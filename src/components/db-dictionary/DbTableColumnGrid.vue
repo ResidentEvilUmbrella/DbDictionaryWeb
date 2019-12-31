@@ -11,12 +11,13 @@
                             <el-button type="danger" size="mini" @click="deleteColumn"><i
                                     class="fa fa-minus gridIconCls" aria-hidden="true"></i>删除字段
                             </el-button>
-                            <el-button type="warning" size="mini" @click="generaterTable" v-show="nodeType=='table'"><i class="fa fa-table gridIconCls"
-                                                                     aria-hidden="true"></i>同步数据表
-                            </el-button>
                             <el-button type="primary" size="mini" @click="saveDataEvent"><i
                                     class="fa fa-floppy-o gridIconCls" aria-hidden="true"></i>保存
                             </el-button>
+                            <el-button type="warning" size="mini" @click="generaterTable" v-show="nodeType=='table'"><i class="fa fa-table gridIconCls"
+                                                                     aria-hidden="true"></i>同步数据表
+                            </el-button>
+
                         </template>
                     </el-form-item>
                 </el-form>
