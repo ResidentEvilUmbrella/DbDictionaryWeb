@@ -324,6 +324,11 @@
         },mounted() {
             this.loadData();
             this.nodeType=this.nodeData.type;
+        },
+        watch:{
+            nodeData(newValue, oldValue){
+                this.nodeType=newValue.type;
+            }
         }
     }
 </script>

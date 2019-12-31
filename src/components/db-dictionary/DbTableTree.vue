@@ -13,7 +13,10 @@
                 style="padding-left: 2%;padding-right:0;margin-right:0;width:95%;">
                 <span class="slot-t-node" slot-scope="{ node, data }">
                  <i class="fa" :class="iconClsObj[data.type]" :style="{'color' : node.expanded||data.type=='table' ? iconStyleObj[data.type] :'#9c9c9c'}" />
-                <span>{{ node.label }}</span>
+                    <el-tooltip placement="top">
+                      <div slot="content" v-html="setToolTip(data)"></div>
+                         <span>{{ node.label }}</span>
+                    </el-tooltip>
             </span>
         </el-tree>
         </el-scrollbar>
@@ -78,7 +81,8 @@
                     children: 'children',
                     label: 'label',
                     isLeaf(data, node){
-                        console.log(data,node)
+                        return node.type=="table";
+                        //console.log(data,node)
                     }
                 },
                 iconClsObj:{
@@ -295,6 +299,19 @@
             },
             syncDbTableWindowOkEvent(moduleNodeData){
                 this.refreshNode(moduleNodeData["nodeId"],moduleNodeData["type"])
+            },
+            setToolTip(node){
+                let {type}=node;
+                console.log(node)
+                let result="1234556";
+                if(type=="db"){
+                    result=`数据库名称:${node.obj.dbName}`;
+                }else if(type=="module"){
+                    result=`模块名称:${node.obj.moduleName}</br>模块备注:${node.obj.remark}`;
+                }else if(type=="table"){
+                    result=`表名称:${node.obj.tableName}</br>表备注:${node.obj.remark}`;
+                }
+                return result;
             }
         },
         watch:{
