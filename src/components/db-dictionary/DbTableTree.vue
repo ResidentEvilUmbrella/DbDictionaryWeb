@@ -13,7 +13,7 @@
                 style="padding-left: 2%;padding-right:0;margin-right:0;width:95%;">
                 <span class="slot-t-node" slot-scope="{ node, data }">
                  <i class="fa" :class="iconClsObj[data.type]" :style="{'color' : node.expanded||data.type=='table' ? iconStyleObj[data.type] :'#9c9c9c'}" />
-                    <el-tooltip placement="top">
+                    <el-tooltip placement="right">
                       <div slot="content" v-html="setToolTip(data)"></div>
                          <span>{{ node.label }}</span>
                     </el-tooltip>
@@ -80,10 +80,7 @@
                 defaultProps: {
                     children: 'children',
                     label: 'label',
-                    isLeaf(data, node){
-                        return node.type=="table";
-                        //console.log(data,node)
-                    }
+                    isLeaf:"isLeaf"
                 },
                 iconClsObj:{
                     "db":"fa-database",
@@ -173,8 +170,12 @@
                 // console.log("右键被点击的value:", value);
                 // console.log("右键被点击的element:", element);
             },
-            nodeClick(){
+            nodeClick(data,node){
                 this.menuVisible = false;
+                if(data.type=="table"){
+                    this.columnUpdate(data);
+                }
+
             },
             tableAdd(data){
                 //新增表
