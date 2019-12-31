@@ -195,7 +195,18 @@
             },
             deleteColumn() {
                 let removeRecords = this.$refs.xTable.getCheckboxRecords();
-                if(removeRecords.length>0){
+                let primaryKeyCol=null;
+                removeRecords.forEach((value, index, array)=>{
+                    if(value["primaryKey"]){
+                        primaryKeyCol=value;
+                        return false;
+                    }
+                });
+                //存在主键列给出提示
+                if(primaryKeyCol){
+                    this.$message.error({message: '不能删除主键列！！'});
+                    return false;
+                }else if(removeRecords.length>0){
                     this.$refs.xTable.removeSelecteds()
                 }else{
                     this.$message.warning({message: '请选择需要删除的数据!!'});

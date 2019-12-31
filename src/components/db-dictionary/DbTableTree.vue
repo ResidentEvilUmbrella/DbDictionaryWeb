@@ -60,7 +60,7 @@
 
         <module-window ref="moduleWindow" @okEvent="moduleWindowOkEvent"></module-window>
 
-        <sync-db-table-window ref="syncDbTableWindow" ></sync-db-table-window>
+        <sync-db-table-window ref="syncDbTableWindow"  @okEvent="syncDbTableWindowOkEvent"></sync-db-table-window>
     </div>
 </template>
 
@@ -292,6 +292,9 @@
             },
             showSyncDbTableWindow(data){
                 this.$refs.syncDbTableWindow.showWin(data);
+            },
+            syncDbTableWindowOkEvent(moduleNodeData){
+                this.refreshNode(moduleNodeData["nodeId"],moduleNodeData["type"])
             }
         },
         watch:{

@@ -1,30 +1,27 @@
 <template>
     <div>
         <!-- modal edit -->
-        <el-dialog :title="windowAttr.title" :visible.sync="windowAttr.windowVisible" >
+        <el-dialog :title="windowAttr.title" :visible.sync="windowAttr.windowVisible" width="40%">
             <el-table
                     ref="multipleTable"
                     :data="tableData"
                     tooltip-effect="dark"
-                    style="width: 100%">
+                    style="width:90%;margin: 0px auto;"
+                    height="460"
+                    @selection-change="handleSelectionChange"
+                    border
+                    stripe>
+
                 <el-table-column
                         type="selection"
-                        width="55">
+                        width="55"
+                        align="center"
+                >
                 </el-table-column>
                 <el-table-column
-                        label="日期"
-                        width="120">
-                    <template slot-scope="scope">{{ scope.row.date }}</template>
-                </el-table-column>
-                <el-table-column
-                        prop="name"
-                        label="姓名"
-                        width="120">
-                </el-table-column>
-                <el-table-column
-                        prop="address"
-                        label="地址"
-                        show-overflow-tooltip>
+                        prop="tableShowName"
+                        label="表名"
+                        align="center">
                 </el-table-column>
             </el-table>
             <div slot="footer" class="dialog-footer">
@@ -43,36 +40,9 @@
         },
         data(){
             return {
-                tableData: [{
-                    date: '2016-05-03',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1518 弄'
-                }, {
-                    date: '2016-05-02',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1518 弄'
-                }, {
-                    date: '2016-05-04',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1518 弄'
-                }, {
-                    date: '2016-05-01',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1518 弄'
-                }, {
-                    date: '2016-05-08',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1518 弄'
-                }, {
-                    date: '2016-05-06',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1518 弄'
-                }, {
-                    date: '2016-05-07',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1518 弄'
-                }],
+                tableData: [],
                 multipleSelection: [],
+                nodeData:null,
                 windowAttr:{
                  windowVisible:false,
                     title:"生成数据库字典"
@@ -81,9 +51,10 @@
         },
         methods:{
             showWin(data){
-                this.editData={ ...this.editDataTemplate};
+                this.nodeData=data;
                 this.postRequest("/dict/getSyncTables").then(respData=>{
                     console.log(respData);
+                    this.tableData=respData;
                 })
                 this.windowAttr.windowVisible=true;
             },
@@ -91,28 +62,30 @@
                 this.windowAttr.windowVisible=false;
             },okEvent(){
                 //确定事件
-                this.$refs.form.validate((valid) => {
-                    if (valid) {
+                if(this.multipleSelection.length==0){
+                    this.$message.warning({message: '请勾选需要同步的表！！'});
+                    return false;
+                }
+                this.$confirm('确定要生成选中表的数据字典吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    let data={moduleVo:this.nodeData["obj"],tableVoList:this.multipleSelection};
+                    this.postRequest("/dict/syncDictByTables",data).then(respData=>{
+                        this.$emit("okEvent",this.nodeData);
+                    })
+                    /*this.$message({
+                        type: 'success',
+                        message: '删除成功!'
+                    });*/
+                }).catch(() => {
 
-                        if (this.editData.tmuid != "") {
-                            this.postRequest("/dict/updTable", this.editData).then(respData => {
-                                this.$emit("okEvent",this.editData);
-                                this.closeWin();
-                            })
-                        } else {
-                            this.postRequest("/dict/addTable", this.editData).then(respData => {
-                                this.$emit("okEvent",respData["body"]);
-                                this.closeWin();
-                            })
-                        }
-                    } else {
-                        //console.log('error submit!!');
-                        return false;
-                    }
                 });
-
-
-            }
+            },
+             handleSelectionChange(val) {
+            this.multipleSelection = val;
+        }
         },
         mounted() {
 
