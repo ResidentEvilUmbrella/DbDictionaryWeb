@@ -1,5 +1,9 @@
 <template>
-  <el-container style="border: 1px solid #eee">
+  <el-container style="border: 1px solid #eee"  v-loading.fullscreen.lock="this.$store.state.loadding"
+                element-loading-text="保存数据中,请稍等。。。。"
+                element-loading-spinner="el-icon-loading"
+                element-loading-background="rgba(0, 0, 0, 0.7)">
+
     <el-row style="width: 100%;height: 100%;">
       <el-col :span="4" :xs="3" :sm="3" :md="8" :lg="4" :xl="4" class="aside">
         <!--<div class="asideButton">

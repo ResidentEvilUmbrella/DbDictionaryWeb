@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div >
         <el-row>
             <el-col :span="24">
                 <el-form size="mini" :inline="true" ref="headerrow">

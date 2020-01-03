@@ -1,15 +1,35 @@
 <template>
     <div>
         <el-scrollbar style="height: 100%;width: 98%">
+            <div class="asideButton">
+                <el-row>
+                    <el-col>
+                        <el-autocomplete
+                                v-model="filterTableText"
+                                prefix-icon="el-icon-search"
+                                :fetch-suggestions="querySearchAsync"
+                                placeholder="搜索表"
+                                size="medium"
+                                @select="handleSelect"
+                        ></el-autocomplete>
+                    </el-col>
+                </el-row>
+            </div>
         <el-tree
                 :props="defaultProps"
                 node-key="nodeId"
                 ref="dbTableTree"
                 @node-contextmenu='rightClick'
                 @node-click="nodeClick"
+                @node-expand="nodeExpand"
+                @node-drop="handleDrop"
+                draggable
+                :allow-drop="allowDrop"
+                :allow-drag="allowDrag"
                 :load="loadNode"
                 lazy
-                highlight-current
+                :highlight-current="true"
+                :default-expanded-keys="expandNodes"
                 style="padding-left: 2%;padding-right:0;margin-right:0;width:95%;">
                 <span class="slot-t-node" slot-scope="{ node, data }">
                  <i class="fa" :class="iconClsObj[data.type]" :style="{'color' : node.expanded||data.type=='table' ? iconStyleObj[data.type] :'#9c9c9c'}" />
@@ -99,7 +119,10 @@
                     "module":false,
                     "table":false,
                     "db":false
-                }
+                },
+                filterTableText:"",
+                expandNodes:[],
+                currentKey:""
             }
         },
         methods: {
@@ -284,6 +307,16 @@
                 let {nodeId="root",type="root"}=data;
                 this.postRequest("/dict/getTree",{nodeId:nodeId,type:type}).then(data=>{
                     resolve(data);
+                    data.forEach((value, index, array)=>{
+                        if(this.currentKey==value["nodeId"]){
+                            this.$nextTick(() => {
+                                this.$refs.dbTableTree.setCurrentKey(this.currentKey);
+                                this.currentKey="";
+                            })
+                        }
+                    });
+
+
                 });
             },
             getNodeByPid(pid,type){
@@ -306,14 +339,6 @@
                             this.refreshNode(value.data.nodeId,value.data.type)
                         });
                     }
-               /* try {
-
-                     this.refreshNode(moduleNodeData.obj["dbConnId"],"db");
-
-                    this.refreshNode(moduleNodeData.nodeId,moduleNodeData.type);
-                }catch (e) {
-                    //
-                }*/
 
             },
             setToolTip(node){
@@ -327,6 +352,68 @@
                     result=`表名:${node.obj.tableName}</br>备注:${!node.obj.remark?"":node.obj.remark}`;
                 }
                 return result;
+            },
+            querySearchAsync(queryString, cb) {
+
+                this.postKeyValueRequest("/dict/getTableByName",{tableName:queryString}).then(respData=>{
+                    cb(respData);
+                });
+                /*var restaurants = this.restaurants;
+                var results = queryString ? restaurants.filter(this.createStateFilter(queryString)) : restaurants;
+                clearTimeout(this.timeout);
+                this.timeout = setTimeout(() => {
+
+                }, 3000 * Math.random());*/
+            },
+            handleSelect(item) {
+                ///dict/getTableByName
+                this.expandNodes=[];
+                this.expandNodes.push(item.dbVo["tmuid"]);
+                this.expandNodes.push(item.moduleVo["tmuid"]);
+                //this.expandNodes.push(item.tableVo["tmuid"]);
+                this.$refs.dbTableTree.setCurrentKey(item.tableVo["tmuid"]);
+                this.$nextTick(() => {
+                    this.currentKey=item.tableVo["tmuid"];
+                    this.$refs.dbTableTree.setCurrentKey(item.tableVo["tmuid"]);
+                })
+
+            },
+            nodeExpand(data,node){
+                console.log(data,node)
+            },
+            handleDrop(draggingNode, dropNode, dropType, ev) {
+                let dropNodeData=dropNode.data;
+                let draggingNodeData=draggingNode.data;
+                if(draggingNodeData.type=="table"){
+                    let moduleCode="";
+                    let moduleId="";
+                    if(dropNodeData.type=="module"&&dropType=="inner"){
+                        moduleCode=dropNodeData.obj.moduleCode;
+                        moduleId=dropNodeData.obj.tmuid;
+                    }else if(dropNode.data.type=="table"){
+                        moduleCode=dropNodeData.obj.moduleCode;
+                        moduleId=dropNodeData.obj.moduleId;
+                    }
+                    let tableObj=draggingNodeData.obj;
+                    tableObj.moduleId=moduleId;
+                    tableObj.moduleCode=moduleCode;
+                    tableObj.loading=false;
+                    this.postRequest("/dict/updTable", tableObj).then(respData => {
+                    })
+                }
+                console.log('tree drop: ', draggingNode, dropNodeData, dropType);
+            },
+            allowDrop(draggingNode, dropNode, type) {
+                if (dropNode.data.type === 'module') {
+                    return type === 'inner';
+                } else if(dropNode.data.type === 'table'&&draggingNode.data.obj.moduleCode!=dropNode.data.obj.moduleCode) {
+                    return type === 'prev'||type === 'next';
+                }else{
+                    return  false;
+                }
+            },
+            allowDrag(draggingNode) {
+                return draggingNode.data.type==="table";
             }
         },
         watch:{

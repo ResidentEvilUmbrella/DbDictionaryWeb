@@ -1,17 +1,22 @@
 import  axios from  'axios'
+import qs from 'qs'
+import store from "../store"
 import  {Message} from 'element-ui'
 
 
 axios.interceptors.response.use(sussess=>{
-            if(sussess.status&&sussess.status==200&&sussess.data.status==500){
+        store.state.loadding=false;//在这里对返回的数据进行处理
+    if(sussess.status&&sussess.status==200&&sussess.data.status==500){
                 Message.error({message:sussess.data.msg});
                 return;
             }
             if(sussess.data.msg){
                 Message.success({message:sussess.data.msg});
             }
-            return sussess.data;
+
+        return sussess.data;
 },error =>{
+
     let status = error.response.status;
     if(status==504||status==404){
         Message.error({message:"服务器被吃了。。。"});
@@ -29,6 +34,23 @@ axios.interceptors.response.use(sussess=>{
          return;
     }
  )
+let loading="";
+axios.interceptors.request.use(config=>{
+    let url=config["url"];
+
+    //get 不显示加载中
+    let paramObj=qs.parse(config.data);
+    let {loading=true}=paramObj;
+    console.log(paramObj);
+    console.log(loading);
+    let actionName=url.substring(url.lastIndexOf("/")+1);
+    if(!actionName.toLocaleLowerCase().startsWith("get")&&loading){
+        store.state.loadding=true;
+    }else{
+        store.state.loadding=false;
+    }
+    return config;
+})
 
 let base="";
 

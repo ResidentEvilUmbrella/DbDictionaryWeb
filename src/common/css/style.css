@@ -184,7 +184,7 @@ img {
   background-color: #FAFAFA;
 }
 .asideButton{
-  padding: 20px;
+  padding: 0px;
   margin-left: 25px;
 }
 .asideButton .el-row{
@@ -233,4 +233,8 @@ label{
 }
 .menuItem:hover{
   background-color: #409EFF;
+}
+
+.el-tree--highlight-current .el-tree-node.is-current>.el-tree-node__content {
+  background-color: #b7d9ff;
 }
