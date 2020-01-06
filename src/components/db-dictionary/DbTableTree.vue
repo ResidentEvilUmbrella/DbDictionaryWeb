@@ -308,13 +308,14 @@
                 this.postRequest("/dict/getTree",{nodeId:nodeId,type:type}).then(data=>{
                     resolve(data);
                     data.forEach((value, index, array)=>{
-                        if(this.currentKey==value["nodeId"]){
-                            this.$nextTick(() => {
-                                this.$refs.dbTableTree.setCurrentKey(this.currentKey);
-                                this.currentKey="";
-                            })
+                        console.log(this.currentKey===value["nodeId"])
+                        if(this.currentKey===value["nodeId"]){
+                            this.$refs.dbTableTree.setCurrentKey(this.currentKey);
+                            this.currentKey="";
+
                         }
                     });
+
 
 
                 });
@@ -325,7 +326,9 @@
             },
             refreshNode(pid,type){
                 this.getNodeByPid(pid,type).then(data=>{
+
                     this.$refs.dbTableTree.updateKeyChildren(pid,data);
+                    this.$forceUpdate();
                 });
             },
             showSyncDbTableWindow(data){
@@ -335,7 +338,9 @@
                 let dbNode=this.$refs.dbTableTree.getNode(moduleNodeData.obj["dbConnId"]);
                     if(dbNode){
                         let {childNodes}=dbNode;
+                        //console.log(childNodes);
                         childNodes.forEach((value, index, array)=>{
+                        //console.log(value.data.nodeId,value.data.type);
                             this.refreshNode(value.data.nodeId,value.data.type)
                         });
                     }
