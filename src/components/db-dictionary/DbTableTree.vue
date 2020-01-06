@@ -379,7 +379,7 @@
 
             },
             nodeExpand(data,node){
-                console.log(data,node)
+                //console.log(data,node)
             },
             handleDrop(draggingNode, dropNode, dropType, ev) {
                 let dropNodeData=dropNode.data;
@@ -401,7 +401,7 @@
                     this.postRequest("/dict/updTable", tableObj).then(respData => {
                     })
                 }
-                console.log('tree drop: ', draggingNode, dropNodeData, dropType);
+                //console.log('tree drop: ', draggingNode, dropNodeData, dropType);
             },
             allowDrop(draggingNode, dropNode, type) {
                 if (dropNode.data.type === 'module') {

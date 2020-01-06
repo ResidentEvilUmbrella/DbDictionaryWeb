@@ -75,7 +75,7 @@
             showWin(data,action){
                 this.editData={ ...this.editDataTemplate};
                 if(action=="add"){
-                  console.log(data)
+                  //console.log(data)
                     //获取选择的节点的tmuid 作为连接数据库的tmuid
                     this.editData["dbConnId"]=data.obj["tmuid"];
                     //添加

@@ -53,7 +53,7 @@
             showWin(data){
                 this.nodeData=data;
                 this.postRequest("/dict/getSyncTables").then(respData=>{
-                    console.log(respData);
+                    //console.log(respData);
                     this.tableData=respData;
                 })
                 this.windowAttr.windowVisible=true;
@@ -73,6 +73,7 @@
                 }).then(() => {
                     let data={moduleVo:this.nodeData["obj"],tableVoList:this.multipleSelection};
                     this.postRequest("/dict/syncDictByTables",data).then(respData=>{
+                       this.closeWin();
                         this.$emit("okEvent",this.nodeData);
                     })
                     /*this.$message({

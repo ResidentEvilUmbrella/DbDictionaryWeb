@@ -41,8 +41,6 @@ axios.interceptors.request.use(config=>{
     //get 不显示加载中
     let paramObj=qs.parse(config.data);
     let {loading=true}=paramObj;
-    console.log(paramObj);
-    console.log(loading);
     let actionName=url.substring(url.lastIndexOf("/")+1);
     if(!actionName.toLocaleLowerCase().startsWith("get")&&loading){
         store.state.loadding=true;

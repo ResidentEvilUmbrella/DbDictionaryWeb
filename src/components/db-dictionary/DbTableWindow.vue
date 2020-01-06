@@ -106,7 +106,7 @@
                 this.editData={ ...this.editDataTemplate};
                 this.action=action;
                 if(action=="add"){
-                    console.log(data)
+                    //console.log(data)
                     //获取选择的节点的tmuid 作为连接数据库的tmuid
                     this.windowAttr.title="添加表"
                     this.editData["dbConnId"]=data.obj["dbConnId"];

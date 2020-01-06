@@ -5,7 +5,7 @@
                 element-loading-background="rgba(0, 0, 0, 0.5)">
 
     <el-row style="width: 100%;height: 100%;">
-      <el-col :span="4" :xs="3" :sm="3" :md="8" :lg="4" :xl="4" class="aside">
+      <el-col :span="4" :xs="3" :sm="3" :md="8" :lg="5" :xl="4" class="aside">
         <!--<div class="asideButton">
           <el-row>
             <el-col>
