@@ -53,8 +53,9 @@
                             {{row.columnShowName}}
                         </template>
                     </vxe-table-column>
-                    <vxe-table-column field="dataType" title="数据类型"
-                                      :edit-render="{name: 'select', options: dataTypeList}"></vxe-table-column>
+                    <vxe-table-column field="dataType" title="数据类型"  :edit-render="{name: 'select',options:dataTypeList,events:{change:dataTypeChange}}">
+                    </vxe-table-column>
+
                     <vxe-table-column field="columnLength" title="字段长度"
                                       :edit-render="{name: 'input'}">
                         <template v-slot:edit="{ row }">
@@ -121,10 +122,27 @@
                         {pattern:/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/,message:"字段名称不能包含空格和特殊字符"}
                     ],
                     columnLength: [
-                        {required: true, message: '请输入字段长度'},
-                        {pattern:/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/,message:"中文字段名称不能包含空格和特殊字符"},
-                        {validator:function(rule, value, callback, {rules,row,column,rowIndex,columnIndex}){
-                                            if((value+"").length==0){
+                        {
+                            validator:function(rule, value, callback, {rules,row,column,rowIndex,columnIndex}){
+                               let dataType={};
+                             let  dataTypeList=[
+                                    {label:"",value:""},
+                                    {label: 'varchar', value: 'varchar',columnLength:255,columnDecimalPlace:""},
+                                    {label: 'int', value: 'int',columnLength:4,columnDecimalPlace:""},
+                                    {label: 'decimal', value: 'decimal',columnLength:18,columnDecimalPlace:4},
+                                    {label: 'float', value: 'float',columnLength:4,columnDecimalPlace:""},
+                                    {label: 'double', value: 'double',columnLength:8,columnDecimalPlace:"4"},
+                                    {label:"text",value:"text"},
+                                    {label:"datetime",value:"datetime"}]
+                                dataTypeList.forEach(item=>{
+                                    if(row.dataType==item.value){
+                                        dataType=item;
+                                    }
+                                })
+                                    let {columnLength=0}=dataType;
+                                    if(columnLength==0){
+                                        return  callback();
+                                    }else if((value+"").length==0){
                                                return callback(new Error("请输入字段长度"))
                                             }else{
                                                 if(value<=0||value>8000){
@@ -175,13 +193,18 @@
                     remark: "",
                     used: true,
                     sort: 0,
+                    columnDecimalPlace:"",
+                    columnLength:"",
                 },
-                dataTypeList: [{label: '', value: ''},
-                    {label: 'varchar', value: 'varchar'},
-                    {label: 'int', value: 'int'},
-                    {label: 'decimal', value: 'decimal'},
-                    {label: 'float', value: 'float'},
-                    {label: 'double', value: 'double'}]
+                dataTypeList: [
+                    {label:"",value:""},
+                    {label: 'varchar', value: 'varchar',columnLength:255,columnDecimalPlace:""},
+                    {label: 'int', value: 'int',columnLength:4,columnDecimalPlace:""},
+                    {label: 'decimal', value: 'decimal',columnLength:18,columnDecimalPlace:4},
+                    {label: 'float', value: 'float',columnLength:4,columnDecimalPlace:""},
+                    {label: 'double', value: 'double',columnLength:8,columnDecimalPlace:"4"},
+                    {label:"text",value:"text"},
+                    {label:"datetime",value:"datetime"}]
             }
         },
         methods: {
@@ -320,6 +343,17 @@
 
                     });
                 }
+
+            },
+            dataTypeChange({row,rowIndex,$rowIndex,column,columnIndex,$columnIndex},event){
+                this.dataTypeList.forEach(item=>{
+                    if(event.target.value==item.value){
+                        let {columnLength='',columnDecimalPlace=''}=item;
+                        row.columnLength=columnLength;
+                        row.columnDecimalPlace=columnDecimalPlace;
+                    }
+                })
+
 
             }
         },mounted() {
