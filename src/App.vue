@@ -39,7 +39,7 @@
       <el-col :span="20" :xs="17" :sm="17" :md="16" :lg="18" :xl="20">
         <el-container>
           <el-main>
-            <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab">
+            <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab" @tab-click="tabClick">
               <el-tab-pane
                       v-for="(item) in editableTabs"
                       :key="item.index"
@@ -175,13 +175,24 @@
             tabs.forEach((tab, index) => {
                 if (selectTableDataMap[tab.name]){
                     // 销毁子标签
-                    tab.refColumnTable=false;
+                    tab.refColumnTableRedy=true;
                     // 重新创建子标签
                     this.$nextTick(() => {
                         tab.refColumnTable=true;
                     });
                 }
             });
+        },
+        tabClick(tab){
+            let{refColumnTableRedy=false}=tab;
+            // 重新创建子标签
+            if(refColumnTableRedy){
+                tab.refColumnTable=false;
+                this.$nextTick(() => {
+                    tab.refColumnTable=true;
+                });
+            }
+
         }
     }
   };
