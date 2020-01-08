@@ -313,7 +313,7 @@
                 this.postRequest("/dict/getTree",{nodeId:nodeId,type:type}).then(data=>{
                     resolve(data);
                     data.forEach((value, index, array)=>{
-                        console.log(this.currentKey===value["nodeId"])
+                        //console.log(this.currentKey===value["nodeId"])
                         if(this.currentKey===value["nodeId"]){
                             this.$refs.dbTableTree.setCurrentKey(this.currentKey);
                             this.currentKey="";

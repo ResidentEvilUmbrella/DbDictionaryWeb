@@ -362,7 +362,7 @@
                 })
             },
             activeCellMethod ({row, rowIndex, column, columnIndex}) {
-                console.log(row,column)
+                //console.log(row,column)
                 if(column.property=="columnDecimalPlace"||column.property=="columnLength"){
                     let dataTypeObj=null;
                     this.dataTypeList.forEach(item=>{
@@ -394,7 +394,7 @@
                 this.nodeType=newValue.type;
             },
             refColumnTable(newValue, oldValue){
-                console.log(newValue)
+                //console.log(newValue)
                 if (newValue===true){
                     this.loadData();
                 }

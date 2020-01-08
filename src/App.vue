@@ -85,7 +85,7 @@
       //添加表
       tableAdd(data){
         this.addTab(this.editableTabsValue,data);
-        console.log(data)
+        //console.log(data)
       },
       //修改表
       tableUpdate(data){
@@ -97,11 +97,11 @@
       //修改字段
       columnUpdate(data){
         this.addTab(this.editableTabsValue,data);
-        console.log(data)
+        //console.log(data)
       },
 
       addTab(targetName,data) {
-          console.log(data)
+          //console.log(data)
         let {nodeId,type,label}=data;
         let newTabName ="";
         let existsTable=false;
@@ -175,23 +175,37 @@
             tabs.forEach((tab, index) => {
                 if (selectTableDataMap[tab.name]){
                     // 销毁子标签
-                    tab.refColumnTableRedy=true;
-                    // 重新创建子标签
-                    this.$nextTick(() => {
+
+                    if(this.editableTabsValue==tab.name){
+                      tab.refColumnTable=false;
+                      // 重新创建子标签
+                      this.$nextTick(() => {
                         tab.refColumnTable=true;
-                    });
+                      });
+                    }else{
+                      tab.refColumnTableRedy=true;
+                    }
+
                 }
             });
         },
         tabClick(tab){
-            let{refColumnTableRedy=false}=tab;
-            // 重新创建子标签
-            if(refColumnTableRedy){
-                tab.refColumnTable=false;
-                this.$nextTick(() => {
-                    tab.refColumnTable=true;
-                });
-            }
+
+          let tabs = this.editableTabs;
+          tabs.forEach((item, index) => {
+            if (tab.name==item.name){
+                let{refColumnTableRedy=false}=item;
+                if(refColumnTableRedy){
+                  item.refColumnTable=false;
+                  this.$nextTick(() => {
+                    item.refColumnTable=true;
+                  });
+                  item.refColumnTableRedy=false;
+                }
+              }
+          });
+
+
 
         }
     }
