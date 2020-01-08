@@ -1,59 +1,61 @@
 <template>
-  <el-container style="border: 1px solid #eee"  v-loading.fullscreen.lock="this.$store.state.loadding"
+  <el-container style="border: 1px solid #eee;height: 100%;"  v-loading.fullscreen.lock="this.$store.state.loadding"
                 element-loading-text="程序处理中,请稍等。。。。"
                 element-loading-spinner="el-icon-loading"
                 element-loading-background="rgba(0, 0, 0, 0.5)">
+    <el-main style="padding: 0px;">
+      <el-row >
+        <el-col :span="4" :xs="3" :sm="3" :md="9" :lg="7" :xl="4" class="aside">
+          <!--<div class="asideButton">
+            <el-row>
+              <el-col>
+                <el-button type="primary" style="width: 220px" size="medium" plain round @click="handleNew">发布新地址</el-button>
+              </el-col>
+            </el-row>
+            <el-row>
+              <el-col>
+                <el-input
+                        placeholder="搜索分类"
+                        prefix-icon="el-icon-search"
+                        v-model="filterText"
+                        size="medium">
+                </el-input>
+              </el-col>
+      </el-row>
+          </div>-->
+          <el-aside style="padding-top:10px;margin: 0px;" width="300px" >
+            <!--左侧树形-->
+            <db-table-tree
+                    v-on:tableAdd="tableAdd"
+                    @columnUpdate="columnUpdate"
+                    @tableUpdate="tableUpdate"
+                    @dbTableWindowOkEvent="dbTableWindowOkEvent"
+                    @tableDeleteEvent="tableDelete"
+                    @syncDbTableWindowOkEvent="syncDbTableWindowOkEvent"
+                    ref="dbTableTree"
+            ></db-table-tree>
+          </el-aside>
+        </el-col>
+        <el-col :span="20" :xs="17" :sm="15" :md="14" :lg="16" :xl="19">
+          <el-container>
+            <el-main>
+              <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab" @tab-click="tabClick" class="dbTableTabs">
+                <el-tab-pane
+                        v-for="(item) in editableTabs"
+                        :key="item.index"
+                        :label="item.title"
+                        :name="item.name">
+                  <!-- 组件会在 `currentTabComponent` 改变时改变 -->
+                  <component v-bind:is="item.content" :nodeData="item.nodeData" :panelId="item.name" v-if="item.refColumnTable==true" @dbTableWindowOkEvent="dbTableWindowOkEvent"></component>
 
-    <el-row style="width: 100%;height: 100%;">
-      <el-col :span="4" :xs="3" :sm="3" :md="8" :lg="5" :xl="4" class="aside">
-        <!--<div class="asideButton">
-          <el-row>
-            <el-col>
-              <el-button type="primary" style="width: 220px" size="medium" plain round @click="handleNew">发布新地址</el-button>
-            </el-col>
-          </el-row>
-          <el-row>
-            <el-col>
-              <el-input
-                      placeholder="搜索分类"
-                      prefix-icon="el-icon-search"
-                      v-model="filterText"
-                      size="medium">
-              </el-input>
-            </el-col>
-    </el-row>
-        </div>-->
-        <el-aside style="padding-top:10px;margin: 0px;" width="100%" >
-          <!--左侧树形-->
-          <db-table-tree
-          v-on:tableAdd="tableAdd"
-          @columnUpdate="columnUpdate"
-          @tableUpdate="tableUpdate"
-          @dbTableWindowOkEvent="dbTableWindowOkEvent"
-          @tableDeleteEvent="tableDelete"
-          @syncDbTableWindowOkEvent="syncDbTableWindowOkEvent"
-          ref="dbTableTree"
-          ></db-table-tree>
-        </el-aside>
-      </el-col>
-      <el-col :span="20" :xs="17" :sm="17" :md="16" :lg="18" :xl="20">
-        <el-container>
-          <el-main>
-            <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab" @tab-click="tabClick">
-              <el-tab-pane
-                      v-for="(item) in editableTabs"
-                      :key="item.index"
-                      :label="item.title"
-                      :name="item.name">
-                <!-- 组件会在 `currentTabComponent` 改变时改变 -->
-                <component v-bind:is="item.content" :nodeData="item.nodeData" :panelId="item.name" v-if="item.refColumnTable==true" @dbTableWindowOkEvent="dbTableWindowOkEvent"></component>
+                </el-tab-pane>
+              </el-tabs>
+            </el-main>
+          </el-container>
+        </el-col>
+      </el-row>
 
-              </el-tab-pane>
-            </el-tabs>
-          </el-main>
-        </el-container>
-      </el-col>
-    </el-row>
+    </el-main>
   </el-container>
 
 </template>
@@ -115,9 +117,11 @@
         }
         let tabs = this.editableTabs;
         //判断面板id是否存在 不存在的时候增加 存在时 激活该面板
+        let activeTab=null;
         tabs.forEach((tab, index) => {
           if (tab.name === tabIndex) {
             existsTable=true;
+            activeTab=tab;
             return false;
           }
         });
@@ -129,10 +133,16 @@
                 nodeData:data,
                 refColumnTable:true
           });
+        }else{
+          if(activeTab){
+            this.tabClick(activeTab);
+          }
+
         }
 
 
         this.editableTabsValue =tabIndex;
+
       },
       removeTab(targetName) {
         let tabs = this.editableTabs;

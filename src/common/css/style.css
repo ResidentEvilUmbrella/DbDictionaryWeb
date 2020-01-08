@@ -180,8 +180,14 @@ img {
 }*/
 .aside{
   border-right: 1px solid #e6e9f0;
-  height:850px;
+  height:930px;
   background-color: #FAFAFA;
+  border-radius: 6px;
+  margin-top: 10px;
+  margin-left: 15px;
+  padding-top: 5px;
+  padding-bottom: 13px;
+  box-shadow: 1px 1px 3px rgba(0,0,0,.2);
 }
 .asideButton{
   padding: 0px;
