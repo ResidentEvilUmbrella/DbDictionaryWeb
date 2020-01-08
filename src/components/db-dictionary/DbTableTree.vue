@@ -54,9 +54,13 @@
                 <el-menu-item index="1" v-show="menuItemVisible['module']" class="menuItem">
                     <span slot="title">添加表</span>
                 </el-menu-item>
-                <el-menu-item index="9" v-show="menuItemVisible['module']" class="menuItem">
-                    <span slot="title">导入表</span>
-                </el-menu-item>
+                <el-tooltip placement="right">
+                    <div slot="content" v-html="importTableToolTip"></div>
+                    <el-menu-item index="9" v-show="menuItemVisible['module']" class="menuItem">
+                        <span slot="title">导入表</span>
+                    </el-menu-item>
+                </el-tooltip>
+
                 <el-menu-item index="2" v-show="menuItemVisible['module']" class="menuItem">
                     <span slot="title">刷新</span>
                 </el-menu-item>
@@ -122,7 +126,8 @@
                 },
                 filterTableText:"",
                 expandNodes:[],
-                currentKey:""
+                currentKey:"",
+                importTableToolTip:"通过数据库中的表解析生成数据库字典数据到当前模块</br>(如已存在相同字典数据将会覆盖)"
             }
         },
         methods: {
@@ -334,7 +339,7 @@
             showSyncDbTableWindow(data){
                 this.$refs.syncDbTableWindow.showWin(data);
             },
-             syncDbTableWindowOkEvent(moduleNodeData){
+             syncDbTableWindowOkEvent({moduleNodeData,selectTableData}){
                 let dbNode=this.$refs.dbTableTree.getNode(moduleNodeData.obj["dbConnId"]);
                     if(dbNode){
                         let {childNodes}=dbNode;
@@ -344,7 +349,7 @@
                             this.refreshNode(value.data.nodeId,value.data.type)
                         });
                     }
-
+                 this.$emit("syncDbTableWindowOkEvent",{moduleNodeData,selectTableData})
             },
             setToolTip(node){
                 let {type}=node;

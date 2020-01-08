@@ -74,7 +74,8 @@
                     let data={moduleVo:this.nodeData["obj"],tableVoList:this.multipleSelection};
                     this.postRequest("/dict/syncDictByTables",data).then(respData=>{
                        this.closeWin();
-                        this.$emit("okEvent",this.nodeData);
+                        let nodeData=this.nodeData;
+                        this.$emit("okEvent",{moduleNodeData:nodeData,selectTableData:this.multipleSelection});
                     })
                     /*this.$message({
                         type: 'success',

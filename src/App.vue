@@ -31,6 +31,7 @@
           @tableUpdate="tableUpdate"
           @dbTableWindowOkEvent="dbTableWindowOkEvent"
           @tableDeleteEvent="tableDelete"
+          @syncDbTableWindowOkEvent="syncDbTableWindowOkEvent"
           ref="dbTableTree"
           ></db-table-tree>
         </el-aside>
@@ -45,7 +46,7 @@
                       :label="item.title"
                       :name="item.name">
                 <!-- 组件会在 `currentTabComponent` 改变时改变 -->
-                <component v-bind:is="item.content" :nodeData="item.nodeData" :panelId="item.name" @dbTableWindowOkEvent="dbTableWindowOkEvent"></component>
+                <component v-bind:is="item.content" :nodeData="item.nodeData" :panelId="item.name" v-if="item.refColumnTable==true" @dbTableWindowOkEvent="dbTableWindowOkEvent"></component>
 
               </el-tab-pane>
             </el-tabs>
@@ -122,10 +123,11 @@
         });
         if(!existsTable){
           this.editableTabs.push({
-            title: newTabName,
-            name: tabIndex,
-            content: 'DbTableColumnGrid',
-            nodeData:data
+                title: newTabName,
+                name: tabIndex,
+                content: 'DbTableColumnGrid',
+                nodeData:data,
+                refColumnTable:true
           });
         }
 
@@ -163,7 +165,24 @@
         if(data){
           this.$refs.dbTableTree.refreshNode(data["moduleId"],"module");
         }
-      }
+      },
+        syncDbTableWindowOkEvent({moduleNodeData,selectTableData}){
+            let selectTableDataMap={};
+            selectTableData.forEach((item)=>{
+                selectTableDataMap[item["tmuid"]]=item;
+            })
+            let tabs = this.editableTabs;
+            tabs.forEach((tab, index) => {
+                if (selectTableDataMap[tab.name]){
+                    // 销毁子标签
+                    tab.refColumnTable=false;
+                    // 重新创建子标签
+                    this.$nextTick(() => {
+                        tab.refColumnTable=true;
+                    });
+                }
+            });
+        }
     }
   };
 </script>

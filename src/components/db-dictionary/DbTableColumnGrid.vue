@@ -14,9 +14,16 @@
                             <el-button type="primary" size="mini" @click="saveDataEvent"><i
                                     class="fa fa-floppy-o gridIconCls" aria-hidden="true"></i>保存
                             </el-button>
-                            <el-button type="warning" size="mini" @click="generaterTable" v-show="nodeType=='table'"><i class="fa fa-table gridIconCls"
-                                                                     aria-hidden="true"></i>同步数据表
-                            </el-button>
+
+                                <el-tooltip placement="right">
+                                    <div slot="content" v-html="syncTableToolTip"></div>
+                                    <el-button type="warning" size="mini" @click="generaterTable" v-show="nodeType=='table'">
+                                    <i class="fa fa-table gridIconCls"
+                                       aria-hidden="true"></i>
+                                         同步数据表
+                                    </el-button>
+                                </el-tooltip>
+
 
                         </template>
                     </el-form-item>
@@ -32,7 +39,7 @@
                         class="my_table_status"
                         :data="tableData"
                         :edit-rules="validRules"
-                        :edit-config="{trigger: 'click', mode: 'cell', showStatus: true,showIcon:false}">
+                        :edit-config="{trigger: 'click', mode: 'cell', showStatus: true,showIcon:false, activeMethod: activeCellMethod}">
                     <vxe-table-column type="checkbox" width="60"></vxe-table-column>
                     <vxe-table-column type="seq" width="60"></vxe-table-column>
                     <vxe-table-column field="columnName" title="字段名称"
@@ -111,11 +118,12 @@
     export default {
         name: "DbTableColumnGrid",
         components: {DbTableWindow},
-        props:["nodeData","panelId"],
+        props:["nodeData","panelId","refColumnTable"],
         data() {
             return {
                 tableData: [],
                 nodeType:"",
+                syncTableToolTip:"根据字典设置自动更新数据库表</br>(支持创建表、增/删/改字段)",
                 validRules: {
                     columnName: [
                         {required: true, message: '请输入字段名称'},
@@ -199,10 +207,9 @@
                 dataTypeList: [
                     {label:"",value:""},
                     {label: 'varchar', value: 'varchar',columnLength:255,columnDecimalPlace:""},
-                    {label: 'int', value: 'int',columnLength:4,columnDecimalPlace:""},
+                    {label: 'int', value: 'int',columnLength:"",columnDecimalPlace:""},
                     {label: 'decimal', value: 'decimal',columnLength:18,columnDecimalPlace:4},
-                    {label: 'float', value: 'float',columnLength:4,columnDecimalPlace:""},
-                    {label: 'double', value: 'double',columnLength:8,columnDecimalPlace:"4"},
+                    {label: 'float', value: 'float',columnLength:"",columnDecimalPlace:""},
                     {label:"text",value:"text"},
                     {label:"datetime",value:"datetime"}]
             }
@@ -353,8 +360,30 @@
                         row.columnDecimalPlace=columnDecimalPlace;
                     }
                 })
+            },
+            activeCellMethod ({row, rowIndex, column, columnIndex}) {
+                console.log(row,column)
+                if(column.property=="columnDecimalPlace"||column.property=="columnLength"){
+                    let dataTypeObj=null;
+                    this.dataTypeList.forEach(item=>{
+                        if(row.dataType==item.value){
+                            dataTypeObj=item;
+                            return false;
+                        }
+                    })
+                    if(row.dataType=="varchar"&&column.property=="columnDecimalPlace"){
+                        return false;
+                    }
+                    let {columnLength=0}=dataTypeObj;
+                    if(columnLength==0){
+                        return false;
+                    }else{
+                        return true;
+                    }
 
+                }
 
+                return true
             }
         },mounted() {
             this.loadData();
@@ -363,6 +392,12 @@
         watch:{
             nodeData(newValue, oldValue){
                 this.nodeType=newValue.type;
+            },
+            refColumnTable(newValue, oldValue){
+                console.log(newValue)
+                if (newValue===true){
+                    this.loadData();
+                }
             }
         }
     }
