@@ -5,6 +5,8 @@ import 'font-awesome/css/font-awesome.css'
 import './common/css/style.css'
 import 'xe-utils'
 import VXETable from 'vxe-table'
+import VXETablePluginElement from 'vxe-table-plugin-element'
+import 'vxe-table-plugin-element/dist/style.css'
 import 'vxe-table/lib/index.css'
 import App from './App.vue'
 import router from './router'
@@ -21,9 +23,12 @@ Vue.prototype.putRequest=putRequest;
 Vue.prototype.deleteRequest=deleteRequest;
 Vue.prototype.postKeyValueRequest=postKeyValueRequest;
 
+
 Vue.config.productionTip = false
 Vue.use(ElementUI);
 Vue.use(VXETable)
+VXETable.use(VXETablePluginElement)
+
 
 new Vue({
   router,

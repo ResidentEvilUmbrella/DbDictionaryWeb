@@ -90,14 +90,10 @@
                             <el-switch v-model="row.notNull" ></el-switch>
                         </template>
                     </vxe-table-column>
-                    <vxe-table-column field="primaryKey" align="center" title="主键" :edit-render="{name: 'input'}">
+                    <vxe-table-column field="primaryKey" align="center" title="主键"  :edit-render="{name: 'ElSwitch', type: 'visible',events:{change:primaryKeyChange} }"  >
                         <template v-slot:header="{column,columnIndex,$columnIndex,fixed,isHidden}">
                             <i class="fa fa-key" style="margin-right:0px;color: #FFDB23"/>
                             主键
-                        </template>
-                        <template v-slot:edit="{ row }">
-                            <el-switch v-model="row.primaryKey" ></el-switch>
-                            <!--<input type="date" v-model="row.date3" class="custom-input">-->
                         </template>
                         <template v-slot="{ row }">
                             <el-switch v-model="row.primaryKey" ></el-switch>
@@ -126,29 +122,68 @@
                 syncTableToolTip:"根据字典设置自动更新数据库表</br>(支持创建表、增/删/改字段)",
                 validRules: {
                     columnName: [
-                        {required: true, message: '请输入字段名称'},
-                        {pattern:/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/,message:"字段名称不能包含空格和特殊字符"}
+                        {
+                            validator:(rule, val, callback, {rules,row,column,rowIndex,columnIndex})=>{
+
+                                let insertRecords = this.$refs.xTable.getInsertRecords();
+                                let updateRecords = this.$refs.xTable.getUpdateRecords();
+                                let records = this.tableData;
+                                let columnNameMap={};
+                                if(insertRecords.length>0){
+                                    insertRecords.forEach((value, index, array)=>{
+                                        if(!columnNameMap[value["columnName"]]){
+                                            columnNameMap[value["columnName"]]=[];
+                                        }
+                                        columnNameMap[value["columnName"]].push({tmuid:"1",value});
+                                    });
+                                }
+
+                                /*if(updateRecords.length>0){
+                                    updateRecords.forEach((value, index, array)=>{
+                                        if(!columnNameMap[value["columnName"]]){
+                                            columnNameMap[value["columnName"]]=[];
+                                        }
+                                        columnNameMap[value["columnName"]].push({id:value.tmuid,value});
+                                    });
+                                    /!*this.postRequest("/dict/updCol",insertRecords).then(respData=>{
+                                    })*!/
+                                }*/
+                                if(records.length>0){
+                                    records.forEach((value, index, array)=>{
+                                        if(!columnNameMap[value["columnName"]]){
+                                            columnNameMap[value["columnName"]]=[];
+                                        }
+                                        columnNameMap[value["columnName"]].push(value);
+                                    });
+                                    /*this.postRequest("/dict/updCol",insertRecords).then(respData=>{
+                                    })*/
+                                }
+
+                                let columnNameArr=columnNameMap[val];
+
+                                if((val+"").length==0){
+                                    return callback(new Error("请输入字段名称"))
+                                }else if(columnNameArr&&columnNameArr.length>1){
+                                    console.log(columnNameArr)
+                                    return   callback(new Error("字段名称不能重复"));
+                                }
+                                return  callback();
+
+                            }
+                        }
                     ],
                     columnLength: [
                         {
-                            validator:function(rule, value, callback, {rules,row,column,rowIndex,columnIndex}){
+                            validator:(rule, value, callback, {rules,row,column,rowIndex,columnIndex})=>{
                                let dataType={};
-                             let  dataTypeList=[
-                                    {label:"",value:""},
-                                    {label: 'varchar', value: 'varchar',columnLength:255,columnDecimalPlace:""},
-                                    {label: 'int', value: 'int',columnLength:4,columnDecimalPlace:""},
-                                    {label: 'decimal', value: 'decimal',columnLength:18,columnDecimalPlace:4},
-                                    {label: 'float', value: 'float',columnLength:4,columnDecimalPlace:""},
-                                    {label: 'double', value: 'double',columnLength:8,columnDecimalPlace:"4"},
-                                    {label:"text",value:"text"},
-                                    {label:"datetime",value:"datetime"}]
+                             let  dataTypeList=this.dataTypeList;
                                 dataTypeList.forEach(item=>{
                                     if(row.dataType==item.value){
                                         dataType=item;
                                     }
                                 })
-                                    let {columnLength=0}=dataType;
-                                    if(columnLength==0){
+                                    let {checkLength=false}=dataType;
+                                    if(!checkLength){
                                         return  callback();
                                     }else if((value+"").length==0){
                                                return callback(new Error("请输入字段长度"))
@@ -206,9 +241,9 @@
                 },
                 dataTypeList: [
                     {label:"",value:""},
-                    {label: 'varchar', value: 'varchar',columnLength:255,columnDecimalPlace:""},
+                    {label: 'varchar', value: 'varchar',columnLength:255,columnDecimalPlace:"",checkLength:true},
                     {label: 'int', value: 'int',columnLength:"",columnDecimalPlace:""},
-                    {label: 'decimal', value: 'decimal',columnLength:18,columnDecimalPlace:4},
+                    {label: 'decimal', value: 'decimal',columnLength:18,columnDecimalPlace:4,checkLength:true},
                     {label: 'float', value: 'float',columnLength:"",columnDecimalPlace:""},
                     {label:"text",value:"text"},
                     {label:"datetime",value:"datetime"}]
@@ -360,6 +395,11 @@
                         row.columnDecimalPlace=columnDecimalPlace;
                     }
                 })
+            },
+            primaryKeyChange( {row,rowIndex,column,columnIndex},newValue){
+                if(newValue){
+                    row.notNull=newValue;
+                }
             },
             activeCellMethod ({row, rowIndex, column, columnIndex}) {
                 //console.log(row,column)

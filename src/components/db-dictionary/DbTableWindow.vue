@@ -130,13 +130,18 @@
 
                         if (this.editData.tmuid != "") {
                             this.postRequest("/dict/updTable", this.editData).then(respData => {
-                                this.$emit("okEvent",this.editData);
-                                this.closeWin();
+                                if(respData&&respData.status==200){
+                                    this.$emit("okEvent",this.editData);
+                                    this.closeWin();
+                                }
+
                             })
                         } else {
                             this.postRequest("/dict/addTable", this.editData).then(respData => {
-                                this.$emit("okEvent",respData["body"]);
-                                this.closeWin();
+                                if(respData.status==200){
+                                    this.$emit("okEvent",respData["body"]);
+                                    this.closeWin();
+                                }
                             })
                         }
                     } else {

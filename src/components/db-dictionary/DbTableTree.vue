@@ -217,7 +217,7 @@
                     type: 'warning'
                 }).then(() => {
                     this.postRequest("/dict/delTable",data["obj"]).then(respData=>{
-                        this.refreshNode(data["obj"]["dbConnId"],"db")
+                        this.refreshNode(data["obj"]["moduleId"],"module")
                         //删除表事件
                         this.$emit('tableDeleteEvent',data["obj"]);
                     })
