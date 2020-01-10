@@ -1,24 +1,43 @@
 # DbDictionaryWeb
 
-## Project setup
-```
-npm install
-```
+## 功能简介
+1. 对数据库字典进行维护管理
+2. 按模块进行分类管理数据库表
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+------------
 
-### Compiles and minifies for production
-```
-npm run build
-```
+## 功能特点
+1. 支持单表通过数据库字典配置动态创建数据库表（不支持删除表同步）、增删改表字段（可更新字段类型、字段长度、小数位数、主键、是否可为空、描述等）（正向同步）
+2. 支持通过数据库表反转解析生成数据库字典数据（可多选表批量反转）（逆向同步）
+3. 目前支持根据当前数据库连接动态识别数据库方言，调用不同数据库底层代码更新数据库表结构（目前支持sqlserver、mysql数据库，时间及环境关系此次不予支持oracle数据库，已预留扩展接口）（时间关系此次不实现多数据库配置动态连接(sys_db_conn表配置)，只获取当前数据库连接处理）
+4. 支持swagger插件查询后台controller访问接口（各接口及字段已做完整注释）
+启动服务后访问以下地址即可，IP请自行根据配置进行修改
+http://localhost:8080/swagger-ui.html#/
+5. 前台表节点支持拖拽（切换模块）
+6. 前台支持表英文名/中文名模糊检索定位树形表节点
+7. 前台支持多表同时编辑（但只支持单表保存和正向同步）
 
-### Lints and fixes files
-```
-npm run lint
-```
+------------
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## 环境部署
+### 数据库环境
+sql server 2008 / mysql 6.3
+### 前台环境
+Vue 3.4.1，npm 6.12.1，HbuilderX 最新版
+### 后台环境
+JDK 1.8.0_231，eclipse 2019-09 R (4.13.0)，spring boot 4.5.0，gradle 3.0
+### 运行环境
+使用上述IDE直接编译启动服务
+1. 修改后台数据库连接配置、服务端口号，前台请求后台地址、端口号（见下方说明）
+2. 后台使用gradle导入项目，通过gradle刷新项目自动加载依赖包，编译结束后，使用spring
+boot启动文件（DbDictionaryApplication）
+3. 前台在项目根目录下使用命令行“npm i”自动加载依赖脚本库，然后通过“npm run server”启动前台服务
+
+------------
+
+## 配置文件
+### 前台配置
+编辑前台项目根目录下的文件“vue.config.js”，配置访问后台的地址及前台服务端口号
+
+### 后台配置
+编辑后台项目resources目录下的文件“application.properties”，配置后台服务端口号、mssql数据库连接、mysql数据库连接
