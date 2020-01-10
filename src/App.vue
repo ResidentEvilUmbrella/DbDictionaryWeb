@@ -5,24 +5,7 @@
                 element-loading-background="rgba(0, 0, 0, 0.5)">
     <el-main style="padding: 0px;">
       <el-row >
-        <el-col :span="4" :xs="3" :sm="3" :md="9" :lg="7" :xl="4" class="aside">
-          <!--<div class="asideButton">
-            <el-row>
-              <el-col>
-                <el-button type="primary" style="width: 220px" size="medium" plain round @click="handleNew">发布新地址</el-button>
-              </el-col>
-            </el-row>
-            <el-row>
-              <el-col>
-                <el-input
-                        placeholder="搜索分类"
-                        prefix-icon="el-icon-search"
-                        v-model="filterText"
-                        size="medium">
-                </el-input>
-              </el-col>
-      </el-row>
-          </div>-->
+        <el-col :span="4" :xs="3" :sm="3" :md="9" :lg="4" :xl="4" class="aside">
           <el-aside style="padding-top:10px;margin: 0px;" width="300px" >
             <!--左侧树形-->
             <db-table-tree
@@ -36,9 +19,10 @@
             ></db-table-tree>
           </el-aside>
         </el-col>
-        <el-col :span="20" :xs="17" :sm="15" :md="14" :lg="16" :xl="19">
+        <el-col :span="20" :xs="17" :sm="15" :md="14" :lg="19" :xl="19">
           <el-container>
             <el-main>
+              <!--右侧选项卡页面-->
               <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab" @tab-click="tabClick" class="dbTableTabs">
                 <el-tab-pane
                         v-for="(item) in editableTabs"
@@ -67,16 +51,7 @@
   export default {
     components: {DbTableTree, ElCol,DbTableColumnGrid },
     data() {
-      const item = {
-        tagID: "ID001",
-        name: "地区",
-        description: "此处是改内容的详细描述...",
-        creatorID: "Admin",
-        regeneratorID: "Admin"
-      };
       return {
-        DATA: null,
-        NODE: null,
         editableTabsValue: '0',
         editableTabs: [],
         tabIndex:0,
@@ -84,13 +59,14 @@
       }
     },
     methods: {
-      //添加表
+      //添加表方法
       tableAdd(data){
+        //添加一个tab页
         this.addTab(this.editableTabsValue,data);
-        //console.log(data)
       },
       //修改表
       tableUpdate(data){
+        //显示修改表窗口
        this.showTableWin(data);
       },
       tableDelete(data){
@@ -98,20 +74,23 @@
       },
       //修改字段
       columnUpdate(data){
+        //添加一个选项卡
         this.addTab(this.editableTabsValue,data);
         //console.log(data)
       },
-
+      //添加选项卡
       addTab(targetName,data) {
           //console.log(data)
         let {nodeId,type,label}=data;
         let newTabName ="";
         let existsTable=false;
         let tabIndex='';
+        //选择的表节点 修改操作
         if (type=="table"){
           newTabName=label;
           tabIndex=nodeId;
         }else{
+          //其他节点新增表
           newTabName="新建表"+tabIndex;
           tabIndex=++this.tabIndex + '';
         }
@@ -126,6 +105,7 @@
           }
         });
         if(!existsTable){
+          //不存在时，新增面板
           this.editableTabs.push({
                 title: newTabName,
                 name: tabIndex,
@@ -134,17 +114,17 @@
                 refColumnTable:true
           });
         }else{
+          //存在时激活该面板
           if(activeTab){
             this.tabClick(activeTab);
           }
-
         }
-
-
         this.editableTabsValue =tabIndex;
 
       },
       removeTab(targetName) {
+        //关闭选项卡
+
         let tabs = this.editableTabs;
         let activeName = this.editableTabsValue;
         if (activeName === targetName) {
@@ -162,49 +142,58 @@
         this.editableTabs = tabs.filter(tab => tab.name !== targetName);
       },
       dbTableWindowOkEvent(data,panelId){
+        //添加修改表后的回调函数
         let tabs = this.editableTabs;
+        //遍历所有选项卡
         tabs.forEach((tab, index) => {
           if (tab.name === panelId) {
+           // 如果和保存的表属于同一个表 改变选项卡的名称、id和节点数据
               tab.name=data["tmuid"];
               tab.title=data["tableShowName"];
             tab.nodeData={obj:data,type:"table",nodeId:data["tmuid"]};
             this.editableTabsValue =data["tmuid"];
           }
         });
-        //刷新树形数据
+        //刷新树形对应的模块节点数据
         if(data){
           this.$refs.dbTableTree.refreshNode(data["moduleId"],"module");
         }
       },
         syncDbTableWindowOkEvent({moduleNodeData,selectTableData}){
+            //导入表后保存2020年1月10日10:11:07
             let selectTableDataMap={};
             selectTableData.forEach((item)=>{
                 selectTableDataMap[item["tmuid"]]=item;
             })
             let tabs = this.editableTabs;
+            //遍历所有打开的选项卡
             tabs.forEach((tab, index) => {
+                //如果重新导入已经打开的选项卡时 销毁该选项卡对应的表格 重新渲染
                 if (selectTableDataMap[tab.name]){
-                    // 销毁子标签
-
+                    //
                     if(this.editableTabsValue==tab.name){
+                      //如果已经激活的选项卡重新导入后 直接销毁重建
+                      //销毁选项卡
                       tab.refColumnTable=false;
-                      // 重新创建子标签
+                      // 重新创建表格
                       this.$nextTick(() => {
                         tab.refColumnTable=true;
                       });
                     }else{
+                      // 需要从新刷新表格标识
                       tab.refColumnTableRedy=true;
                     }
 
                 }
             });
         },
+        //激活tab方法
         tabClick(tab){
-
           let tabs = this.editableTabs;
           tabs.forEach((item, index) => {
             if (tab.name==item.name){
                 let{refColumnTableRedy=false}=item;
+                //该节点需要重新渲染 进行 销毁渲染操作
                 if(refColumnTableRedy){
                   item.refColumnTable=false;
                   this.$nextTick(() => {

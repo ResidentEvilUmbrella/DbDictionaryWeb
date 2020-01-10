@@ -32,9 +32,6 @@
 <script>
     export default {
         name: "ModuleWindow",
-        props:{
-            //editData:Object
-        },
         data(){
 
             return{
@@ -72,13 +69,13 @@
             };
         },
         methods:{
+            //显示窗口
             showWin(data,action){
                 this.editData={ ...this.editDataTemplate};
                 if(action=="add"){
-                  //console.log(data)
-                    //获取选择的节点的tmuid 作为连接数据库的tmuid
-                    this.editData["dbConnId"]=data.obj["tmuid"];
                     //添加
+                    this.editData["dbConnId"]=data.obj["tmuid"];
+
                 } else if(action=="update"){
                     //修改
                     this.editData={...data};
@@ -90,13 +87,12 @@
                 this.windowAttr.windowVisible=false;
             },okEvent(){
                 //确定事件
-                //console.log(this.editData);
                 this.$refs.form.validate((valid) => {
                     if (valid) {
+                        //验证通过返回数据 父组件保存
                         this.$emit("okEvent",this.editData)
                         this.closeWin();
-                        } else {
-                        //console.log('error submit!!');
+                    } else {
                         return false;
                     }
                 });

@@ -50,29 +50,36 @@
             }
         },
         methods:{
+            //显示窗口
             showWin(data){
                 this.nodeData=data;
+                //获取数据库中的表
                 this.postRequest("/dict/getSyncTables").then(respData=>{
-                    //console.log(respData);
                     this.tableData=respData;
                 })
                 this.windowAttr.windowVisible=true;
             },
+            //关闭窗口
             closeWin(){
                 this.windowAttr.windowVisible=false;
             },okEvent(){
-                //确定事件
+                //导入表确定事件
+
+                //没有勾选导入表
                 if(this.multipleSelection.length==0){
                     this.$message.warning({message: '请勾选需要同步的表！！'});
                     return false;
                 }
+
                 this.$confirm('确定要生成选中表的数据字典吗？', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning'
                 }).then(() => {
+                    //生成导入的表
                     let data={moduleVo:this.nodeData["obj"],tableVoList:this.multipleSelection};
                     this.postRequest("/dict/syncDictByTables",data).then(respData=>{
+                        //导入表后生成 关闭窗口 触发确定事件
                        this.closeWin();
                         let nodeData=this.nodeData;
                         this.$emit("okEvent",{moduleNodeData:nodeData,selectTableData:this.multipleSelection});
@@ -85,6 +92,7 @@
 
                 });
             },
+            //勾选改变方法
              handleSelectionChange(val) {
             this.multipleSelection = val;
         }

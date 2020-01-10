@@ -4,6 +4,7 @@
             <div class="asideButton">
                 <el-row>
                     <el-col>
+                        <!--搜索表输入框-->
                         <el-autocomplete
                                 v-model="filterTableText"
                                 prefix-icon="el-icon-search"
@@ -15,13 +16,13 @@
                     </el-col>
                 </el-row>
             </div>
+            <!--树形-->
         <el-tree
                 :props="defaultProps"
                 node-key="nodeId"
                 ref="dbTableTree"
                 @node-contextmenu='rightClick'
                 @node-click="nodeClick"
-                @node-expand="nodeExpand"
                 @node-drop="handleDrop"
                 draggable
                 :allow-drop="allowDrop"
@@ -40,7 +41,7 @@
             </span>
         </el-tree>
         </el-scrollbar>
-        <!--鼠标右键点击出现页面-->
+        <!--鼠标右键点击的菜单-->
         <div v-show="menuVisible">
             <el-menu
                     id = "rightClickMenu"
@@ -48,6 +49,9 @@
                     active-text-color="#fff"
                     @select="handleRightSelect"
                     text-color="#fff">
+                <!--menuItemVisible['db'] 选中 数据库节点时 显示的菜单-->
+                <!--menuItemVisible['module'] 选中 模块节点时 显示的菜单-->
+                <!--menuItemVisible['table'] 选中 表节点时 显示的菜单-->
                 <el-menu-item index="6" v-show="menuItemVisible['db']" class="menuItem">
                     <span slot="title">添加模块</span>
                 </el-menu-item>
@@ -84,9 +88,9 @@
         </div>
         <!--修改表信息窗口-->
         <db-table-window  ref="dbTableWin" @okEvent="tableWinOkEvent"></db-table-window>
-
+        <!--增加修改模块窗口-->
         <module-window ref="moduleWindow" @okEvent="moduleWindowOkEvent"></module-window>
-
+        <!--导入表窗口-->
         <sync-db-table-window ref="syncDbTableWindow"  @okEvent="syncDbTableWindowOkEvent"></sync-db-table-window>
     </div>
 </template>
@@ -132,6 +136,7 @@
         },
         methods: {
             handleRightSelect(key) {
+                //菜单点击 事件
                 if (key == 1) {
                     //添加表
                     this.tableAdd(this.clickNodeData);
@@ -172,6 +177,7 @@
                 }
             },
             rightClick(event, object, value, element) {
+                //右键打开菜单方法
                 this.clickNodeData=object;
                 this.clickNode=element;
                 if (this.objectID !== object.id) {
@@ -198,70 +204,71 @@
                 // console.log("右键被点击的value:", value);
                 // console.log("右键被点击的element:", element);
             },
+            //点击树形节点方法
             nodeClick(data,node){
                 this.menuVisible = false;
                 if(data.type=="table"){
+                    //点击表节点修改列
                     this.columnUpdate(data);
                 }
 
             },
             tableAdd(data){
-                //新增表
+                //新增表 让父组件处理逻辑
                 this.$emit('tableAdd',data);
             },
             tableDelete(data){
-
+                //删除表数据
                 this.$confirm('此操作将删除表【'+data.obj.tableShowName+'】, 是否继续?', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning'
                 }).then(() => {
                     this.postRequest("/dict/delTable",data["obj"]).then(respData=>{
+                        //刷新模块数据
                         this.refreshNode(data["obj"]["moduleId"],"module")
-                        //删除表事件
+                        //触发删除表事件
                         this.$emit('tableDeleteEvent',data["obj"]);
                     })
-                    /*this.$message({
-                        type: 'success',
-                        message: '删除成功!'
-                    });*/
                 }).catch(() => {
 
                 });
-
-
-
             },
             tableUpdate(data){
                 //修改表
-                //弹出窗口
+                //弹出表窗口
                 this.showTableWin(data,"update");
             },
             columnUpdate(data){
-                //修改字段
+                //修改字段 父组件处理逻辑
                 this.$emit('columnUpdate',data);
             },
             showTableWin(data,action){
+                //显示表方法
                 this.$refs.dbTableWin.showWin(data,action);
             },
             showModuleWin(data,action){
+                //显示模块窗口
                 this.$refs.moduleWindow.showWin(data,action);
             },
             tableWinOkEvent(data){
-                //console.log(data);
+                //表窗口保存成功方法 刷新节点数据
                 this.refreshNode(data["moduleId"],"module");
                 this.$emit("dbTableWindowOkEvent",data,data["tmuid"]);
             },
             moduleWindowOkEvent(data){
+                //模块窗口确定按钮回调方法
                 let {tmuid,}=data;
                 if(tmuid!=""){
                    //修改操作模块
                     this.postRequest("/dict/updModule",data).then(respData=>{
+                        //成功刷新树形数据
                         this.refreshNode(data["dbConnId"],"db")
                     })
                 }else{
                     //增加的操作
                     this.postRequest("/dict/addModule",data).then(respData=>{
+                        //成功刷新树形数据
                         this.refreshNode(data["dbConnId"],"db")
                     })
                 }
@@ -276,13 +283,16 @@
                 }
             },
           async  moduleDelete(data){
+                //删除模块
                 let {nodeId,type}=data;
+                //删除前判断表是否存在
                 await this.getNodeByPid(nodeId,type).then(data=>{
                     if(data.length>0){
                         Message.error({message:"该模块下存在表数据不能删除！！！"});
                         return data.length;
                     }
                 }).then(dataLength=>{
+                    //不存在，删除操作
                     if(!dataLength||dataLength==0){
                         this.$confirm('此操作将删除模块【'+data.obj.moduleName+'】, 是否继续?', '提示', {
                             confirmButtonText: '确定',
@@ -290,12 +300,9 @@
                             type: 'warning'
                         }).then(() => {
                             this.postRequest("/dict/delModule",data["obj"]).then(respData=>{
+                                //刷新数据库节点
                                 this.refreshNode(data["obj"]["dbConnId"],"db")
                             })
-                            /*this.$message({
-                                type: 'success',
-                                message: '删除成功!'
-                            });*/
                         }).catch(() => {
 
                         });
@@ -305,13 +312,16 @@
 
             },
             loadNode(node, resolve) {
+                //加载树形节点
                 let {data}=node;
                 if(!data){
                     data={};
                 }
+                //默认加载 根节点
                 let {nodeId="root",type="root"}=data;
                 this.postRequest("/dict/getTree",{nodeId:nodeId,type:type}).then(data=>{
                     resolve(data);
+                    //加载后定位节点操作
                     data.forEach((value, index, array)=>{
                         //console.log(this.currentKey===value["nodeId"])
                         if(this.currentKey===value["nodeId"]){
@@ -320,9 +330,6 @@
 
                         }
                     });
-
-
-
                 });
             },
             getNodeByPid(pid,type){
@@ -330,27 +337,32 @@
                return  this.postRequest("/dict/getTree",paramData);
             },
             refreshNode(pid,type){
+                //刷新指定子节点
                 this.getNodeByPid(pid,type).then(data=>{
 
                     this.$refs.dbTableTree.updateKeyChildren(pid,data);
                     this.$forceUpdate();
                 });
             },
+            //打卡导入表窗口
             showSyncDbTableWindow(data){
                 this.$refs.syncDbTableWindow.showWin(data);
             },
              syncDbTableWindowOkEvent({moduleNodeData,selectTableData}){
+                //导入表后确定方法
+                 //获取数据库节点
                 let dbNode=this.$refs.dbTableTree.getNode(moduleNodeData.obj["dbConnId"]);
+
                     if(dbNode){
+                     //遍历数据库的子节点（模块节点） 刷新该节点数据
                         let {childNodes}=dbNode;
-                        //console.log(childNodes);
                         childNodes.forEach((value, index, array)=>{
-                        //console.log(value.data.nodeId,value.data.type);
                             this.refreshNode(value.data.nodeId,value.data.type)
                         });
                     }
                  this.$emit("syncDbTableWindowOkEvent",{moduleNodeData,selectTableData})
             },
+            //设置节点悬浮提示
             setToolTip(node){
                 let {type}=node;
                 let result="";
@@ -363,20 +375,16 @@
                 }
                 return result;
             },
+            //搜索表
             querySearchAsync(queryString, cb) {
 
                 this.postKeyValueRequest("/dict/getTableByName",{tableName:queryString}).then(respData=>{
                     cb(respData);
                 });
-                /*var restaurants = this.restaurants;
-                var results = queryString ? restaurants.filter(this.createStateFilter(queryString)) : restaurants;
-                clearTimeout(this.timeout);
-                this.timeout = setTimeout(() => {
-
-                }, 3000 * Math.random());*/
             },
+            //点击搜索到的表项目
             handleSelect(item) {
-                ///dict/getTableByName
+                //进行表节点定位操作
                 this.expandNodes=[];
                 this.expandNodes.push(item.dbVo["tmuid"]);
                 this.expandNodes.push(item.moduleVo["tmuid"]);
@@ -388,10 +396,8 @@
                 })
 
             },
-            nodeExpand(data,node){
-                //console.log(data,node)
-            },
             handleDrop(draggingNode, dropNode, dropType, ev) {
+               //表节点拖动方法
                 let dropNodeData=dropNode.data;
                 let draggingNodeData=draggingNode.data;
                 if(draggingNodeData.type=="table"){
@@ -404,6 +410,7 @@
                         moduleCode=dropNodeData.obj.moduleCode;
                         moduleId=dropNodeData.obj.moduleId;
                     }
+                    //给移动后的节点赋值 进行保存
                     let tableObj=draggingNodeData.obj;
                     tableObj.moduleId=moduleId;
                     tableObj.moduleCode=moduleCode;
@@ -411,8 +418,8 @@
                     this.postRequest("/dict/updTable", tableObj).then(respData => {
                     })
                 }
-                //console.log('tree drop: ', draggingNode, dropNodeData, dropType);
             },
+            //判断该节点是否可以放下
             allowDrop(draggingNode, dropNode, type) {
                 if (dropNode.data.type === 'module') {
                     return type === 'inner';
@@ -423,11 +430,13 @@
                 }
             },
             allowDrag(draggingNode) {
+                //判断该节点是否可以拖动
                 return draggingNode.data.type==="table";
             }
         },
         watch:{
             clickNodeData(newValue, oldValue){
+                //选中新节点后给 菜单进行初始化。
                 if(newValue){
                     this.menuItemVisible={ "module":false, "table":false,"db":false}
                     this.menuItemVisible[newValue.type]=true;

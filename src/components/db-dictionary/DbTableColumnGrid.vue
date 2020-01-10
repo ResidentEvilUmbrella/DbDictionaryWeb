@@ -120,6 +120,7 @@
                 tableData: [],
                 nodeType:"",
                 syncTableToolTip:"根据字典设置自动更新数据库表</br>(支持创建表、增/删/改字段)",
+                //表格验证规则
                 validRules: {
                     columnName: [
                         {
@@ -129,6 +130,7 @@
                                 let updateRecords = this.$refs.xTable.getUpdateRecords();
                                 let records = this.tableData;
                                 let columnNameMap={};
+                                //按照列名分组
                                 if(insertRecords.length>0){
                                     insertRecords.forEach((value, index, array)=>{
                                         if(!columnNameMap[value["columnName"]]){
@@ -137,17 +139,6 @@
                                         columnNameMap[value["columnName"]].push({tmuid:"1",value});
                                     });
                                 }
-
-                                /*if(updateRecords.length>0){
-                                    updateRecords.forEach((value, index, array)=>{
-                                        if(!columnNameMap[value["columnName"]]){
-                                            columnNameMap[value["columnName"]]=[];
-                                        }
-                                        columnNameMap[value["columnName"]].push({id:value.tmuid,value});
-                                    });
-                                    /!*this.postRequest("/dict/updCol",insertRecords).then(respData=>{
-                                    })*!/
-                                }*/
                                 if(records.length>0){
                                     records.forEach((value, index, array)=>{
                                         if(!columnNameMap[value["columnName"]]){
@@ -155,16 +146,13 @@
                                         }
                                         columnNameMap[value["columnName"]].push(value);
                                     });
-                                    /*this.postRequest("/dict/updCol",insertRecords).then(respData=>{
-                                    })*/
                                 }
 
                                 let columnNameArr=columnNameMap[val];
-
                                 if((val+"").length==0){
                                     return callback(new Error("请输入字段名称"))
                                 }else if(columnNameArr&&columnNameArr.length>1){
-                                    console.log(columnNameArr)
+                                    //列名重复给出提示
                                     return   callback(new Error("字段名称不能重复"));
                                 }
                                 return  callback();
@@ -187,11 +175,11 @@
                                         return  callback();
                                     }else if((value+"").length==0){
                                                return callback(new Error("请输入字段长度"))
-                                            }else{
-                                                if(value<=0||value>8000){
-                                                  return   callback(new Error("字段长度只能输入1-8000之间的整数"))
-                                                }
-                                            }
+                                    }else{
+                                        if(value<=0||value>8000){
+                                          return   callback(new Error("字段长度只能输入1-8000之间的整数"))
+                                        }
+                                    }
                                             return  callback();
 
                                     }
@@ -215,7 +203,7 @@
                     ],
                     notNull: [
                         {validator:function(rule, value, callback, {rules,row,column,rowIndex,columnIndex}){
-
+                            //主键列不能空
                             if(row.primaryKey&&!row.notNull){
                                   return   callback(new Error("主键列字段不能为空"))
                                 }
@@ -239,6 +227,7 @@
                     columnDecimalPlace:"",
                     columnLength:"",
                 },
+                //数据类型数据
                 dataTypeList: [
                     {label:"",value:""},
                     {label: 'varchar', value: 'varchar',columnLength:255,columnDecimalPlace:"",checkLength:true},
@@ -250,6 +239,7 @@
             }
         },
         methods: {
+            //添加列
             async addColumn() {
                 //-1 添加到最后一行
                 let record = {
@@ -259,9 +249,11 @@
                 let {row: newRow} = await this.$refs.xTable.insertAt(record, row)
                 await this.$refs.xTable.setActiveCell(newRow, 'columnName')
             },
+            //删除列
             deleteColumn() {
                 let removeRecords = this.$refs.xTable.getCheckboxRecords();
                 let primaryKeyCol=null;
+                //查找主键列
                 removeRecords.forEach((value, index, array)=>{
                     if(value["primaryKey"]){
                         primaryKeyCol=value;
@@ -279,6 +271,7 @@
                 }
 
             },
+            //保存数据方法
             async saveDataEvent() {
                 let insertRecords = this.$refs.xTable.getInsertRecords();
                 let removeRecords = this.$refs.xTable.getRemoveRecords();
@@ -292,23 +285,18 @@
                     let {type}=this.nodeData;
                     if(type=="module"){
                         //添加
+                        //打开添加表格窗口
                         this.showTableWin(this.nodeData,"add");
                     }else if(type=="table"){
                         //修改
+                        //直接保存列数据到数据库
                         this.saveDataToDb(this.nodeData["obj"]);
                     }
                 } catch (errMap) {
                     this.$XModal.message({status: 'error', message: '字段校验不通过！'})
                 }
-                /*if(nodeData.dataTmuid&&nodeData.type=="table"){
-                    //修改操作
-                }else{
-                    //增加操作,需要弹出窗口
-                    this.showTableWin(this.nodeData);
-                }*/
-
             },
-            //保存到数据库
+            //保存数据到数据库
             saveDataToDb(tableData){
 
                 let {tmuid:tableTmuid}=tableData;
@@ -318,7 +306,7 @@
                 let saveRecords=[];
                 if(insertRecords.length>0){
                     insertRecords.forEach((value, index, array)=>{
-                        //增加
+                        //增加的数据
                         value["flag"]=1;
                         value["tableId"]=tableTmuid;
                         saveRecords.push(value);
@@ -327,7 +315,7 @@
 
                 if(updateRecords.length>0){
                     updateRecords.forEach((value, index, array)=>{
-                        //修改
+                        //修改的数据
                         value["flag"]=0;
                         value["tableId"]=tableTmuid;
                         //console.log(value);
@@ -339,17 +327,19 @@
 
                 if(removeRecords.length>0){
                     removeRecords.forEach((value, index, array)=>{
-                        //删除
+                        //删除的数据
                         value["flag"]=-1;
                         value["tableId"]=tableTmuid;
                         saveRecords.push(value);
                     });
 
                 }
+                //保存方法 保存后重新加载数据
                 this.postRequest("/dict/saveCol",saveRecords).then(respData=>{
                     this.loadData();
                 })
             },
+            //加载数据
             loadData(){
                 let {type,nodeId}=this.nodeData;
                 if(type=="table"){
@@ -361,13 +351,14 @@
             showTableWin(data,action) {
                 this.$refs.dbTableWin.showWin(data,action);
             },
+            //新增表确定按钮事件
             dbTableWindowOkEvent(data){
-                //增加表操作
+                //增加列操作
                 this.saveDataToDb(data);
                 this.$emit("dbTableWindowOkEvent",data,this.panelId);
             },
             generaterTable(){
-                //生成表
+                //正向生成表
                 if(this.nodeData["type"]=="table"){
                     this.$confirm('确定要在数据库中同步生成表【'+this.nodeData.obj.tableShowName+'】的结构吗？', '提示', {
                         confirmButtonText: '确定',
@@ -387,7 +378,9 @@
                 }
 
             },
+            //数据类型改变事件
             dataTypeChange({row,rowIndex,$rowIndex,column,columnIndex,$columnIndex},event){
+             //类型改变时 联动 字段长度和小数位数列
                 this.dataTypeList.forEach(item=>{
                     if(event.target.value==item.value){
                         let {columnLength='',columnDecimalPlace=''}=item;
@@ -396,11 +389,14 @@
                     }
                 })
             },
+            //主键改变事件
             primaryKeyChange( {row,rowIndex,column,columnIndex},newValue){
+                //主键选中 勾选非空列
                 if(newValue){
                     row.notNull=newValue;
                 }
             },
+            //判断表格是否可以编辑方法
             activeCellMethod ({row, rowIndex, column, columnIndex}) {
                 //console.log(row,column)
                 if(column.property=="columnDecimalPlace"||column.property=="columnLength"){
@@ -411,9 +407,11 @@
                             return false;
                         }
                     })
+                    //varchar类型不能编辑小数位数
                     if(row.dataType=="varchar"&&column.property=="columnDecimalPlace"){
                         return false;
                     }
+                    //初始字段长度为0或空不能编辑
                     let {columnLength=0}=dataTypeObj;
                     if(columnLength==0){
                         return false;
@@ -426,34 +424,20 @@
                 return true
             }
         },mounted() {
+            //页面渲染成功 加载数据
             this.loadData();
             this.nodeType=this.nodeData.type;
         },
         watch:{
             nodeData(newValue, oldValue){
+               //监听nodeData 变量 实时获取选中节点的类型
                 this.nodeType=newValue.type;
-            },
-            refColumnTable(newValue, oldValue){
-                //console.log(newValue)
-                if (newValue===true){
-                    this.loadData();
-                }
             }
         }
     }
 </script>
 
 <style scoped>
-    .dbDictionaryGridMain {
-        margin: 0px;
-        padding: 0px;
-    }
-
-    .dbDictionaryGridHead {
-        margin: 0px;
-        padding: 0px;
-    }
-
     .gridIconCls {
         margin-right: 5px;
     }

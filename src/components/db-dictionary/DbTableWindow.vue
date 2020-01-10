@@ -1,17 +1,9 @@
 <template>
     <div>
-        <!-- modal edit -->
+        <!-- 表格信息 添加修改 -->
     <el-dialog :title="windowAttr.title" :visible.sync="windowAttr.windowVisible" width='30%'>
         <el-form :model="editData" :rules="rules"  ref="form" label-width="auto">
             <el-form-item label="所属模块" v-show="action=='add'">
-                <!--<el-select v-model="editData.moduleCode" placeholder="请选择">
-                    <el-option
-                            v-for="item in moduleList"
-                            :key="item.value"
-                            :label="item.label"
-                            :value="item.value">
-                    </el-option>
-                </el-select>-->
                 <el-input
                         v-model="editData.moduleName"
                         :disabled="true">
@@ -55,9 +47,6 @@
 
     export default {
         name: "DbTableWindow",
-        props:{
-            //editData:Object
-        },
         data(){
             return{
                 rules: {
@@ -102,18 +91,18 @@
             }
         },
         methods:{
+            //显示窗口
             showWin(data,action){
                 this.editData={ ...this.editDataTemplate};
                 this.action=action;
                 if(action=="add"){
-                    //console.log(data)
-                    //获取选择的节点的tmuid 作为连接数据库的tmuid
+                    //添加
                     this.windowAttr.title="添加表"
                     this.editData["dbConnId"]=data.obj["dbConnId"];
                     this.editData["moduleCode"]=data.obj["moduleCode"];
                     this.editData["moduleId"]=data.obj["tmuid"];
                     this.editData["moduleName"]=data.obj["moduleName"];
-                    //添加
+
                 } else if(action=="update"){
                     //修改
                     this.windowAttr.title="修改表"
@@ -122,12 +111,14 @@
                 this.windowAttr.windowVisible=true;
             },
             closeWin(){
+                //关闭窗口
                 this.windowAttr.windowVisible=false;
             },okEvent(){
-                //确定事件
+                //窗口确定事件
+                //验证通过
                 this.$refs.form.validate((valid) => {
                     if (valid) {
-
+                        //修改数据
                         if (this.editData.tmuid != "") {
                             this.postRequest("/dict/updTable", this.editData).then(respData => {
                                 if(respData&&respData.status==200){
@@ -137,6 +128,7 @@
 
                             })
                         } else {
+                            //添加数据
                             this.postRequest("/dict/addTable", this.editData).then(respData => {
                                 if(respData.status==200){
                                     this.$emit("okEvent",respData["body"]);
