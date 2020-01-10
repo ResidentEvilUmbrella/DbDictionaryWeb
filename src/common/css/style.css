@@ -191,7 +191,7 @@ img {
 }
 .asideButton{
   padding: 0px;
-  margin-left: 25px;
+  margin-left: 0px;
 }
 .asideButton .el-row{
   padding: 10px;
@@ -200,7 +200,7 @@ img {
   color: #bdc1ca;
 }
 .asideButton .el-input{
-  width: 220px;
+  width:100%;
 }
 .asideButton .el-input input{
   border-radius: 35px;

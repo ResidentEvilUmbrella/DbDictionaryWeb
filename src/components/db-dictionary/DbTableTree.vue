@@ -11,6 +11,7 @@
                                 :fetch-suggestions="querySearchAsync"
                                 placeholder="搜索表"
                                 size="medium"
+                                class="el-input"
                                 @select="handleSelect"
                         ></el-autocomplete>
                     </el-col>
@@ -30,8 +31,8 @@
                 :load="loadNode"
                 lazy
                 :highlight-current="true"
-                :default-expanded-keys="expandNodes"
-                style="padding-left: 2%;padding-right:0;margin-right:0;width:95%;">
+                style="padding-left: 2%;padding-right:0;margin-right:2%;"
+                :default-expanded-keys="expandNodes">
                 <span class="slot-t-node" slot-scope="{ node, data }">
                  <i class="fa" :class="iconClsObj[data.type]" :style="{'color' : node.expanded||data.type=='table' ? iconStyleObj[data.type] :'#9c9c9c'}" />
                     <el-tooltip placement="right">

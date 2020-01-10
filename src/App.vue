@@ -5,8 +5,8 @@
                 element-loading-background="rgba(0, 0, 0, 0.5)">
     <el-main style="padding: 0px;">
       <el-row >
-        <el-col :span="4" :xs="3" :sm="3" :md="9" :lg="4" :xl="4" class="aside">
-          <el-aside style="padding-top:10px;margin: 0px;" width="300px" >
+        <el-col :span="4" :xs="4" :sm="4" :md="4" :lg="4" :xl="4" class="aside">
+          <el-aside style="padding-top:10px;margin: 0px;width:98%;"  >
             <!--左侧树形-->
             <db-table-tree
                     v-on:tableAdd="tableAdd"
@@ -16,10 +16,11 @@
                     @tableDeleteEvent="tableDelete"
                     @syncDbTableWindowOkEvent="syncDbTableWindowOkEvent"
                     ref="dbTableTree"
+                    style="padding-left: 2%;padding-right:0;margin-right:2%;width:98%;"
             ></db-table-tree>
           </el-aside>
         </el-col>
-        <el-col :span="20" :xs="17" :sm="15" :md="14" :lg="19" :xl="19">
+        <el-col :span="19" :xs="19" :sm="19" :md="19" :lg="19" :xl="19">
           <el-container>
             <el-main>
               <!--右侧选项卡页面-->
