@@ -1,19 +1,20 @@
-let proxyObj={}
-
-proxyObj["/"]={
-    ws:false,
-    target:"http://192.168.1.38:8081",
-    changeOrigin:true,
-    pathRewrite:{
-        '^/':"/"
-    }
-
-}
-
 module.exports={
+    publicPath:"/tm4-dict-zjt-8992-web",
+    lintOnSave:true,
+    productionSourceMap:false,
     devServer:{
         //host:"localhost",
-        port:8081,
-        proxy:proxyObj
+        port:8992,
+        proxy:{
+            "./":{
+                ws:false,
+                target:"http://localhost:8080/",
+                changeOrigin:true,
+                pathRewrite:{
+                    '^/api':"/"
+                }
+
+            }
+        }
     }
 }
