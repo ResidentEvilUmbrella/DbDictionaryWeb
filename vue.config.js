@@ -1,14 +1,3 @@
-let proxyObj={}
-
-proxyObj["/"]={
-    ws:false,
-    target:"http://localhost:8080",
-    changeOrigin:true,
-    pathRewrite:{
-        '^/':"/"
-    }
-
-}
 
 module.exports={
     publicPath:"/tm4-dict-zjt-8992-web",
